@@ -1,0 +1,375 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat+Alternates:wght@400;500;600&family=Montserrat:ital,wght@0,100..900;1,100..900&display=swap');
+
+.font {
+    font-family: "Montserrat Alternates", serif;
+    font-weight: 400;
+    font-style: normal;
+  }
+  
+  .font-medium {
+    font-family: "Montserrat Alternates", serif;
+    font-weight: 500;
+    font-style: normal;
+  }
+  
+  .font-bold {
+    font-family: "Montserrat Alternates", serif;
+    font-weight: 600;
+    font-style: normal;
+  }
+* {
+    box-sizing: border-box;
+}
+body {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+
+    background-color: #333;
+}
+
+.flex {
+    display: flex;
+}
+
+.turn-info {
+    display: none;
+    font-size: 30px;
+    color: #ede8e8;
+    margin: 0;
+    padding: 0;
+}
+.board {
+    background-color: aquamarine;
+    width: 560px;
+    height: 560px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.cell {
+    width: 70px;
+    height: 70px;
+    background-color: #a35050;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 5px;
+}
+
+.white {
+    background-color: #ede8e8;
+}
+
+.black {
+    background-color: #7c8979;
+}
+
+.piece {
+    
+    width: 60px;
+    height: 60px;
+}
+
+.white-pawn {
+    background-image: url(./img/pawn-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+.white-rook {
+    background-image: url(./img/rook-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.white-knight {
+    background-image: url(./img/knight-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.white-bishop {
+    background-image: url(./img/bishop-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.white-king {
+    background-image: url(./img/king-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.white-queen {
+    background-image: url(./img/queen-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+.black-pawn {
+    background-image: url(./img/pawn-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+.black-rook {
+    background-image: url(./img/rook-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.black-knight {
+    background-image: url(./img/knight-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.black-bishop {
+    background-image: url(./img/bishop-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.black-king {
+    background-image: url(./img/king-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: bottom center;
+}
+.black-queen {
+    background-image: url(./img/queen-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+.picked-piece {
+     background-color: transparent;
+}
+.legal-move {
+    width: 70px;
+    height: 70px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+.legal-move::after {
+    content: '';
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    border-radius: 50px;
+    background-color: #54535356;
+}
+
+.short-castle {
+    width: 70px;
+    height: 70px;
+    position: relative;
+    display: flex;
+    
+    align-items: center;
+    padding: 0;
+}
+
+.short-castle::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50px;
+    background-color: #54535356;
+}
+
+.short-castle::before {
+    content: '';
+    position: absolute;
+    right: 15px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50px;
+    background-color: #54535356;
+}
+
+.long-castle {
+    width: 70px;
+    height: 70px;
+    position: relative;
+    display: flex;
+    
+    align-items: center;
+    padding: 0;
+}
+
+.long-castle::after {
+    content: '';
+    position: absolute;
+    left: 15px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50px;
+    background-color: #54535356;
+}
+
+.long-castle::before {
+    content: '';
+    position: absolute;
+    right: 15px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50px;
+    background-color: #54535356;
+}
+
+.under-attack {
+    width: 70px;
+    height: 70px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+}
+
+.under-attack::after {
+    content: '';
+    margin: 0;
+    padding: 0;
+    position: absolute;
+    width: 57px;
+    height: 57px;
+    border-radius: 50px;
+    border: 7px solid #54535356;   
+}
+
+.player-black {
+    position: relative;
+    height: 50px;
+    background-color: rgb(71, 71, 71);
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.player-white {
+    position: relative;
+    height: 50px;
+    background-color: rgb(216, 215, 215);
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.board-wrapper {
+    gap: 10px;
+    flex-direction: column;
+}
+
+.players-wrapper {
+    background-color: rgb(191, 193, 195);
+    width: 300px;
+    height: 560px;
+    padding: 10px;
+}
+
+.player-info-wrapper { 
+    display: flex;
+}
+.taken-pieces {
+    display: flex;
+    height: 20px; 
+    align-items: flex-end;
+}
+
+.taken-pieces .piece {
+    width: 16px;
+    height: 22px;
+    margin: 0;
+    padding: 0;
+}
+
+.player-img {
+    width: 45px;  
+    height: 45px;  
+}
+.player-name-white {
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    color: #dad6d6;
+    
+}
+.player-name-black {
+    margin: 0;
+    padding: 0;
+    font-size: 16px;
+    color: #3c3a3a;
+    
+}
+.player-info {
+    align-items: center;
+    gap: 10px;
+}
+
+.score {
+    display: none;
+}
+
+.player-right-wrapper {
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.black-advantage {
+    color: #dad6d6;
+}
+.white-advantage {
+    color: #3c3a3a;
+}
+
+.black-move-indicator {
+    display: none;
+    position: absolute;
+    top: 18px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50px;
+    background-color: #dad6d6
+}
+
+.white-move-indicator {
+    display: block;
+    position: absolute;
+    top: 18px;
+    right: 10px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50px;
+    background-color: rgb(71, 71, 71);
+}
+
+.game-info {
+    width: 250px;
+    height: 560px;
+    border-radius: 8px;
+    background-color: #dad6d6;
+    padding: 10px;
+    overflow-y: scroll;
+}
+
+.moves-history-list {
+    margin: 0;
+    padding-left: 25px;
+
+}
+
+.moves-history-item {
+    margin-bottom: 5px;
+}

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chess</title>
+    <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+    <div class="board-wrapper flex">
+        <div id="player-black" class="player-black flex">
+            <div class="black-move-indicator" id="black-move-indicator"></div>
+            <img src="./img/player.png" alt="img" class="player-img">
+            <div class="player-right-wrapper flex">
+                <div class="player-info">
+                    <div class="player-info-wrapper">
+                        <h3 class="player-name-white font-medium">Игрок 1</h3>
+                        <span class="score" id="black-score"></span>
+                    </div>
+                </div>
+                <div class="taken-wrapper flex">
+                    <div class="taken-pieces" id="black-taken-pieces"></div>
+                    <span class="black-advantage font-medium" id="black-advantage"></span>
+                </div>
+            </div>
+        </div>
+        <div class="board" id="board"></div>
+        <div id="player-white" class="player-white flex">
+            <div class="white-move-indicator" id="white-move-indicator"></div>
+            <img src="./img/player.png" alt="img" class="player-img">
+            <div class="player-right-wrapper flex">
+                <div class="player-info">
+                    <div class="player-info-wrapper">
+                        <h3 class="player-name-black font-medium">Игрок 2</h3>
+                        <span class="score" id="white-score"></span>
+                    </div>
+                </div>
+                <div class="taken-wrapper flex">
+                    <div class="taken-pieces" id="white-taken-pieces"></div>
+                    <span class="white-advantage font-medium" id="white-advantage"></span>
+                </div>
+            </div>
+        </div> 
+    </div>
+    <div class="game-info" id="game-info">
+        <ol class="moves-history-list" id="moves-history-list"></ul>
+    </div>
+    <script src="./index.js" defer></script>
+</body>
+</html>
