@@ -1,8 +1,46 @@
+console.log("=== Инициализация переменных и DOM-элементов ===");
+
 const whiteStock = document.getElementById('white-taken-pieces');
 const blackStock = document.getElementById('black-taken-pieces');
 
 let whiteScore = 0;
 let blackScore = 0;
+const getWhiteScore = () => {
+    let score=0;
+    const pieces = boardEl.querySelectorAll('[color = "white"]');
+    pieces.forEach((piece)=> {
+        const type = piece.getAttribute('type');
+        if (type === 'pawn') {
+            score +=1;
+
+        } else if(type === 'rook') {
+            score +=5;
+        } else if(type === 'knight' || type === 'bishop') {
+            score +=3;
+        } else if(type === 'queen') {
+            score +=9
+        }
+    })
+    return score
+}
+const getBlackScore = () => {
+    let score=0;
+    const pieces = boardEl.querySelectorAll('[color = "black"]');
+    pieces.forEach((piece)=> {
+        const type = piece.getAttribute('type');
+        if (type === 'pawn') {
+            score +=1;
+
+        } else if(type === 'rook') {
+            score +=5;
+        } else if(type === 'knight' || type === 'bishop') {
+            score +=3;
+        } else if(type === 'queen') {
+            score +=9
+        }
+    })
+    return score
+}
 const whiteScoreSpan = document.getElementById('white-score');
 const blackScoreSpan = document.getElementById('black-score');
 whiteScoreSpan.innerHTML = whiteScore;
@@ -21,6 +59,8 @@ const turnWhiteIndicator = document.getElementById('white-move-indicator');
 const turnBlackIndicator = document.getElementById('black-move-indicator');
 
 function checkAdvantage() {
+    whiteScore = getWhiteScore();
+    blackScore = getBlackScore();
     if (whiteScore > blackScore) {
         whiteAdvantage = whiteScore - blackScore;
         whiteAdvantageSpan.innerHTML = '+' + whiteAdvantage;
@@ -36,6 +76,7 @@ function checkAdvantage() {
 }
 
 function turnIndicator() {
+    console.log("turnIndicator: now turn =", turn);
     if (turn === 'black') {
         turnWhiteIndicator.style.display = 'none';
         turnBlackIndicator.style.display = 'block';
@@ -49,6 +90,8 @@ turnIndicator();
 /***************************************************
  * 2) СОЗДАНИЕ ДОСКИ (DOM) И НАЧАЛЬНОЙ РАССТАНОВКИ
  ***************************************************/
+console.log("=== Создание доски и начальной расстановки ===");
+
 const boardEl = document.getElementById('board');
 const boardSize = 64;
 const cols = ['a','b','c','d','e','f','g','h'];
@@ -72,7 +115,6 @@ function createPiece(type, color) {
     return piece;
 }
 
-// Генерируем клетки .cell
 for (let i = 0; i < boardSize; i++) {
     const cell = document.createElement('div');
     cell.classList.add('cell');
@@ -83,9 +125,10 @@ for (let i = 0; i < boardSize; i++) {
         cell.append(piece);
     }
 
-    const row = Math.ceil((boardSize - i) / 8);  // 8..1 (снизу вверх)
-    const col = (i % 8) + 1;                    // 1..8
-    const file = cols[(i % 8)];                 // 'a'..'h'
+    // row= 8..1 (снизу вверх), col= 1..8
+    const row = Math.ceil((boardSize - i) / 8);
+    const col = (i % 8) + 1;
+    const file = cols[(i % 8)];
 
     cell.setAttribute('cell-row', row);
     cell.setAttribute('cell-col-id', col);
@@ -104,23 +147,22 @@ for (let i = 0; i < boardSize; i++) {
 }
 
 /***************************************************
- * 3) ПАРАЛЛЕЛЬНАЯ «ЛОГИЧЕСКАЯ» МОДЕЛЬ boardArray[8][8]
+ * 3) МАССИВ boardArray ДЛЯ ЛОГИКИ
  ***************************************************/
+console.log("=== Инициализация boardArray ===");
+
 let boardArray = new Array(8).fill(null).map(() => new Array(8).fill(null));
 
-// Сопоставление буквы 'a'..'h' => индекс 0..7
 const fileToIndex = { 'a':0,'b':1,'c':2,'d':3,'e':4,'f':5,'g':6,'h':7 };
 
-// Преобразование id ("a1") -> (row,col) / (0..7, 0..7).
-// При вашем коде: a1 = row=7,col=0, a8 = row=0,col=0 (верх)
 function idToRC(id) {
-    const file = id[0];        
+    // прим. "a1" => rank=1 => row=7 (если 8-rank)
+    const file = id[0];
     const rank = parseInt(id[1], 10);
-    const col = fileToIndex[file];     
-    const row = 8 - rank;             // a1 => rank=1 => row=7
+    const col = fileToIndex[file];
+    const row = 8 - rank;
     return [row, col];
 }
-
 function rcToId(row, col) {
     const files = ['a','b','c','d','e','f','g','h'];
     let f = files[col];
@@ -129,6 +171,7 @@ function rcToId(row, col) {
 }
 
 function initBoardArrayFromDOM() {
+    console.log("initBoardArrayFromDOM: sync DOM => boardArray");
     for (let r = 0; r < 8; r++) {
         for (let c = 0; c < 8; c++) {
             boardArray[r][c] = null;
@@ -137,15 +180,15 @@ function initBoardArrayFromDOM() {
     const allCells = document.querySelectorAll('.cell');
     allCells.forEach((cellEl) => {
         const id = cellEl.id;
-        const [r, c] = idToRC(id);
+        const [rr, cc] = idToRC(id);
         const pieceEl = cellEl.querySelector('.piece');
         if (pieceEl) {
             const type = pieceEl.getAttribute('type');
             const color = pieceEl.getAttribute('color');
-            boardArray[r][c] = {
+            boardArray[rr][cc] = {
                 type,
                 color,
-                hasMoved: false 
+                hasMoved: false
             };
         }
     });
@@ -178,13 +221,12 @@ function clearLegalAttacks() {
 }
 
 /***************************************************
- * 5) EN PASSANT (глобальная переменная)
+ * 5) EN PASSANT: ГЛОБАЛЬНАЯ ПЕРЕМЕННАЯ
  ***************************************************/
 let enPassantTarget = null;
 
-/***************************************************
- * 6) ГЕНЕРАТОР ХОДОВ (с учётом en passant)
- ***************************************************/
+
+//Генератор ходов
 function onBoard(r, c) {
     return r>=0 && r<8 && c>=0 && c<8;
 }
@@ -196,23 +238,33 @@ function canMoveOrCapture(board, r, c, color) {
     return false; 
 }
 
-// --- Pawn (с en passant) ---
+//ПЕШКА
+function onBoard(r, c) {
+    return r>=0 && r<8 && c>=0 && c<8;
+}
+function canMoveOrCapture(board, r, c, color) {
+    if (!onBoard(r,c)) return false;
+    const target = board[r][c];
+    if (!target) return true;
+    if (target.color !== color) return true;
+    return false;
+}
+
+// ПЕШКА
 function generatePawnMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
     const color = piece.color;
-
-    // ВАЖНО: у вас белые идут "row--", значит dir=-1 (белым), +1 (чёрным)
-    let dir = (color === 'white') ? -1 : +1;
+    const dir = (color === 'white') ? -1 : +1;
     let moves = [];
 
-    // Ход вперёд на 1
+    // Ход вперёд на 1 клетку
     let f1 = r + dir;
     if (onBoard(f1,c) && !board[f1][c]) {
         moves.push({fromR:r, fromC:c, toR:f1, toC:c, enPassant:false});
     }
 
-    // Двойной ход
+    // Если на стартовой и чисто перед
     let startRow = (color==='white') ? 6 : 1;
     if (r===startRow && !board[f1][c]) {
         let f2 = r + 2*dir;
@@ -221,7 +273,7 @@ function generatePawnMoves(board, r, c) {
         }
     }
 
-    // Взятия по диагоналям
+    // Взятия по диагонали (обычные)
     for (let dc of [-1,+1]) {
         let cc = c + dc;
         if (onBoard(f1,cc)) {
@@ -236,15 +288,14 @@ function generatePawnMoves(board, r, c) {
         }
     }
 
-    // EN PASSANT (если enPassantTarget) => диагональ на пустую клетку
+    // EN PASSANT
     if (enPassantTarget) {
         let epR = enPassantTarget.r;
         let epC = enPassantTarget.c;
         for (let dc of [-1,+1]) {
             let rr = r + dir;
             let cc = c + dc;
-            if (rr === epR && cc === epC) {
-                // Ход
+            if (rr===epR && cc===epC) {
                 moves.push({
                     fromR:r, fromC:c,
                     toR:epR, toC:epC,
@@ -253,11 +304,10 @@ function generatePawnMoves(board, r, c) {
             }
         }
     }
-
     return moves;
 }
 
-// Остальные фигуры
+//КОНЬ
 function generateKnightMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -276,6 +326,7 @@ function generateKnightMoves(board, r, c) {
     return moves;
 }
 
+//СЛОН
 function generateBishopMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -298,6 +349,7 @@ function generateBishopMoves(board, r, c) {
     return moves;
 }
 
+//ЛАДЬЯ
 function generateRookMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -320,10 +372,12 @@ function generateRookMoves(board, r, c) {
     return moves;
 }
 
+//КОРОЛЕВА
 function generateQueenMoves(board, r, c) {
     return generateRookMoves(board,r,c).concat(generateBishopMoves(board,r,c));
 }
 
+//КОРОЛЬ
 function generateKingMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -438,46 +492,57 @@ function generateAllLegalMoves(board, color) {
     return legal;
 }
 
-/***************************************************
- * 7) ПОКАЗАТЬ ХОДЫ
- ***************************************************/
+//Показать ходы
 function showLegalMoves(cellId) {
+    // Снимаем старые подсветки
     clearLegalMoves();
     clearLegalAttacks();
 
+    // Обновляем boardArray из DOM
     initBoardArrayFromDOM();
 
+    // Получаем координаты и фигуру
     const [r,c] = idToRC(cellId);
     const piece = boardArray[r][c];
-    if (!piece) return;
-    if (piece.color !== turn) return; 
+    if (!piece) return;         // если клетки нет
+    if (piece.color !== turn) return; // если не тот цвет ходит
 
-    const allMoves=generateAllLegalMoves(boardArray, turn);
-    const pieceMoves=allMoves.filter(m=>m.fromR===r && m.fromC===c);
+    // Генерируем все ЛЕГАЛЬНЫЕ ходы текущего цвета
+    const allMoves = generateAllLegalMoves(boardArray, turn);
+    // Фильтруем только те, что от (r,c)
+    const pieceMoves = allMoves.filter(m => (m.fromR === r && m.fromC === c));
 
-    pieceMoves.forEach((move)=>{
-        const toId= rcToId(move.toR, move.toC);
+    // Для каждого хода подсвечиваем клетку
+    pieceMoves.forEach((move) => {
+        const toId = rcToId(move.toR, move.toC);
         const cellEl = document.getElementById(toId);
         if (!cellEl) return;
+
+        // Если это enPassant
+        if (move.enPassant === true) {
+            // Отметим клетку как "взятие" (под атакой), даже если там пусто
+            cellEl.classList.add('under-attack');
+            return;
+        }
+
+        // Обычный случай: если там есть чужая фигура => .under-attack
         const targPiece = cellEl.querySelector('.piece');
         if (targPiece) {
             const tgtColor = targPiece.getAttribute('color');
-            if (tgtColor!==piece.color) {
+            if (tgtColor !== piece.color) {
                 cellEl.classList.add('under-attack');
             }
         } else {
+            // Пустая клетка => .legal-move
             cellEl.classList.add('legal-move');
         }
     });
 
-    // Рокировка
+    // Рокировка (ваш код)
     legalCastleShort(piece.color);
     legalCastleLong(piece.color);
 }
 
-/***************************************************
- * 8) ОБРАБОТКА ВЫБОРА ФИГУРЫ
- ***************************************************/
 function piecePick(e) {
     const piece = e.target;
     if (!piece.classList.contains('piece')) return;
@@ -498,9 +563,7 @@ function piecePick(e) {
     }
 }
 
-/***************************************************
- * 9) ИСТОРИЯ ХОДОВ
- ***************************************************/
+//История ходов
 const movesHistory = [];
 const movesHistoryList = document.getElementById('moves-history-list');
 
@@ -530,17 +593,12 @@ function updateHistoryList() {
     }
 }
 
-/***************************************************
- * 10) EN PASSANT ЛОГИКА: УСТАНОВКА/СБРОС
- ***************************************************/
+//Взятие на проходе
 function setEnPassantIfNeeded(fromR, fromC, toR, toC, piece) {
     if (piece.type==='pawn') {
-        // Если белая => dir=-1, если чёрная => dir=+1
         const dir = (piece.color==='white') ? -1 : +1;
-        // Если сходили на 2 клетки
         if (Math.abs(toR - fromR)===2) {
-            // Промежуточная
-            const midRow = (fromR + toR)/2; 
+            const midRow = (fromR + toR)/2;
             const midCol = toC;
             enPassantTarget = { r: midRow, c: midCol };
             console.log('setEnPassantTarget =>', enPassantTarget);
@@ -549,10 +607,103 @@ function setEnPassantIfNeeded(fromR, fromC, toR, toC, piece) {
     }
     enPassantTarget = null;
 }
+//ПРОМОУШН
+function checkPromotion(pickedPiece) {
+    if (!pickedPiece) return;
+    if (pickedPiece.getAttribute('type') !== 'pawn') return;
 
-/***************************************************
- * 11) СОВЕРШЕНИЕ ХОДА / СЪЕДАНИЯ
- ***************************************************/
+    const parentCell = pickedPiece.parentNode;
+    if (!parentCell) return;
+
+    const cellId = parentCell.id;
+    const [row, col] = idToRC(cellId);
+    const color = pickedPiece.getAttribute('color');
+
+    // Белые: row=0 => reaching top
+    // Чёрные: row=7 => reaching bottom
+    if ((color==='white' && row===0) || (color==='black' && row===7)) {
+        parentCell.style.position = 'relative';
+        console.log(`Promotion for ${color} pawn at`, cellId);
+        openPromotionDialog(pickedPiece, color);
+    }
+}
+// Эта функция открывает модальное окно (promotion-dialog),
+// в котором 4 кнопки (queen, rook, bishop, knight).
+function openPromotionDialog(pawnEl, color) {
+    const dialog = document.getElementById('promotion-dialog');
+    if (!dialog) {
+        console.warn("No element #promotion-dialog found in HTML!");
+        // Если нет — сделаем автоматическую ферзь
+        promotePiece(pawnEl, 'queen', color);
+        return;
+    }
+    const cell = pawnEl.parentNode;  
+    // Делаем клетку position: relative (уже выше в checkPromotion)
+    // и вставляем dialog внутрь этой клетки:
+    cell.appendChild(dialog);
+    // Показываем окно
+    dialog.style.display = 'block';
+    if (color === 'black') {
+        dialog.classList.add('black-modal')
+    } else if (color === 'white') {
+        dialog.classList.remove('black-modal');
+    }
+    // Для удобства, удалим старые «listeners»
+    const buttons = dialog.querySelectorAll('button');
+    buttons.forEach((btn) => {
+        btn.classList.remove(
+            'btn-white-queen', 'btn-white-rook',
+            'btn-white-bishop','btn-white-knight',
+            'btn-black-queen', 'btn-black-rook',
+            'btn-black-bishop','btn-black-knight'
+          );
+        const figureType = btn.getAttribute('data-type');
+        btn.classList.add(`btn-${color}-${figureType}`);
+        btn.onclick = null; // очистим
+    });
+
+    // Навешиваем новые
+    buttons.forEach((btn) => {
+        btn.onclick = () => {
+            const newType = btn.getAttribute('data-type'); 
+            // Вызываем promotePiece
+            promotePiece(pawnEl, newType, color);
+            // Закрываем окно
+            dialog.style.display = 'none';
+            // Синхронизируем boardArray
+            initBoardArrayFromDOM();
+            checkAdvantage()
+        };
+    });
+}
+function promotePiece(pieceEl, newType, color) {
+    pieceEl.classList.remove(
+        `${color}-pawn`, 
+        `${color}-knight`, 
+        `${color}-bishop`, 
+        `${color}-rook`, 
+        `${color}-queen`
+    );
+    pieceEl.classList.add(`${color}-${newType}`);
+    pieceEl.setAttribute('type', newType);
+
+    console.log(`promotePiece: ${color} pawn -> ${newType}`);
+}
+// Собственно смена класса + type
+function promotePiece(pieceEl, newType, color) {
+    // Удаляем все классы figure, например 'white-pawn', 'white-rook' и т.д.
+    pieceEl.classList.remove(`${color}-pawn`, `${color}-knight`, `${color}-bishop`, `${color}-rook`, `${color}-queen`);
+    // Добавляем новый класс
+    pieceEl.classList.add(`${color}-${newType}`);
+    // Меняем атрибут type
+    pieceEl.setAttribute('type', newType);
+
+    console.log("promotePiece: piece now is", pieceEl.classList);
+}
+
+
+
+//ХОД
 function changeTurn() {
     turn = (turn==='white')?'black':'white';
 }
@@ -566,32 +717,36 @@ function move(e) {
     const type = pickedPiece.getAttribute('type');
     const fromId = pickedPiece.parentNode.id;
     const toId = targetCell.id;
-    const oppColor = (color==='white'?'black':'white');
+    const oppColor = (color==='white') ? 'black' : 'white';
 
+    console.log(`move(): ${color} ${type} from ${fromId} to ${toId}`);
     movesHistory.push(`${color} ${type} moves from ${fromId} to ${toId}`);
+
     targetCell.appendChild(pickedPiece);
 
     clearLegalMoves();
     clearLegalAttacks();
     dropPickedPiece();
 
-    // Обновить boardArray
     initBoardArrayFromDOM();
 
-    // EN PASSANT: если пешка пошла на 2 клетки
     const [fr, fc] = idToRC(fromId);
     const [tr, tc] = idToRC(toId);
     const movedPiece = boardArray[tr][tc];
     setEnPassantIfNeeded(fr, fc, tr, tc, movedPiece);
-
+    checkPromotion(pickedPiece);
     ifChecked(oppColor);
     checkEndgameState(oppColor);
     changeTurn();
     turnIndicator();
+    checkAdvantage();
     updateHistoryList();
 }
 
-// *** EN PASSANT-Ориентированная capture ***
+/***************************************************
+ * 10) capture(e): включая EN PASSANT
+ ***************************************************/
+// Функция capture(e)
 function capture(e) {
     const targetCell = e.target.closest('.cell');
     const pickedPiece = document.querySelector('.picked-piece');
@@ -600,6 +755,7 @@ function capture(e) {
     const pickedCell = pickedPiece.parentNode;
     const fromId = pickedCell.id;
     const toId = targetCell.id;
+
     const [fromR, fromC] = idToRC(fromId);
     const [toR, toC] = idToRC(toId);
 
@@ -615,51 +771,50 @@ function capture(e) {
         targetColor = targetPiece.getAttribute('color');
     }
 
-    // Проверяем, enPassant ли
+    console.log(`capture(): ${color} ${type} tries to take something at ${toId}`);
+    console.log("Coords: fromR=", fromR, "fromC=", fromC, "toR=", toR, "toC=", toC, "targetPiece=", targetPiece);
+
+    // Проверяем enPassant
     let isEnPassant = false;
     if (
-        type==='pawn' &&
-        Math.abs(fromC - toC)===1 &&
-        Math.abs(fromR - toR)===1 &&
+        type === 'pawn' &&
+        Math.abs(fromC - toC) === 1 &&
+        Math.abs(fromR - toR) === 1 &&
         !targetPiece
     ) {
         isEnPassant = true;
     }
+    console.log("isEnPassant=", isEnPassant);
 
     if (isEnPassant) {
-        // Для белых => dir=-1, для чёрных => dir=+1
+        console.log("** ENTER EN PASSANT BLOCK **");
         const dir = (color==='white') ? -1 : +1;
         const enemyRow = toR - dir;
         const enemyCol = toC;
         const enemyCellId = rcToId(enemyRow, enemyCol);
         const enemyCellEl = document.getElementById(enemyCellId);
 
-        console.log('EN PASSANT!',
-            'color=', color, 'dir=', dir,
-            'from=', fromR, fromC, 'to=', toR, toC,
-            'enemyRow=', enemyRow, 'enemyCol=', enemyCol,
-            'enemyCellId=', enemyCellId
-        );
+        console.log("EnPassant removal: enemyRow=", enemyRow, "enemyCol=", enemyCol, "enemyCellId=", enemyCellId);
+        console.log("enemyCellEl=", enemyCellEl);
 
         if (enemyCellEl && enemyCellEl.firstChild) {
             const enemyPawn = enemyCellEl.firstChild;
-            targetType = enemyPawn.getAttribute('type');  // 'pawn'
+            targetType = enemyPawn.getAttribute('type');
             targetColor = enemyPawn.getAttribute('color');
 
-            // Удаляем вражескую пешку
+            console.log("Remove enemy pawn for EN PASSANT: ", targetType, targetColor, "at cellId=", enemyCellId);
             enemyPawn.remove();
-            console.log('Removed enemy pawn for en passant');
 
             movesHistory.push(`${color} ${type} takes ${targetColor} ${targetType} enPassant ${fromId} to ${toId}`);
         } else {
-            console.warn('enPassant: не нашли пешку соперника!', enemyRow, enemyCol);
+            console.warn("enPassant: НЕ НАЙДЕНА пешка соперника!", enemyRow, enemyCol, enemyCellEl);
         }
 
-        // Ставим пешку на toId
         targetCell.appendChild(pickedPiece);
 
     } else {
         // Обычное взятие
+        console.log("** ENTER NORMAL CAPTURE BLOCK **");
         movesHistory.push(`${color} ${type} takes ${targetColor} ${targetType} ${fromId} to ${toId}`);
 
         targetCell.appendChild(pickedPiece);
@@ -672,32 +827,36 @@ function capture(e) {
     clearLegalAttacks();
     dropPickedPiece();
 
-    // Добавляем фигуру соперника в "сток" + очки
+    // Добавляем снятую фигуру в «сток» + очки
     if (targetColor === 'white') {
         const dummyPiece = createPiece(targetType, 'white');
         blackStock.appendChild(dummyPiece);
 
-        if (targetType==='pawn') blackScore+=1;
-        else if (targetType==='knight'||targetType==='bishop') blackScore+=3;
-        else if (targetType==='rook') blackScore+=5;
-        else if (targetType==='queen') blackScore+=9;
-        blackScoreSpan.innerHTML=blackScore;
+        if (targetType === 'pawn') blackScore += 1;
+        else if (targetType==='knight' || targetType==='bishop') blackScore += 3;
+        else if (targetType==='rook') blackScore += 5;
+        else if (targetType==='queen') blackScore += 9;
+        blackScoreSpan.innerHTML = blackScore;
 
     } else if (targetColor === 'black') {
         const dummyPiece = createPiece(targetType, 'black');
         whiteStock.appendChild(dummyPiece);
 
-        if (targetType==='pawn') whiteScore+=1;
-        else if (targetType==='knight'||targetType==='bishop') whiteScore+=3;
-        else if (targetType==='rook') whiteScore+=5;
-        else if (targetType==='queen') whiteScore+=9;
-        whiteScoreSpan.innerHTML=whiteScore;
+        // if (targetType==='pawn') whiteScore += 1;
+        // else if (targetType==='knight' || targetType==='bishop') whiteScore += 3;
+        // else if (targetType==='rook') whiteScore += 5;
+        // else if (targetType==='queen') whiteScore += 9;
+        // whiteScoreSpan.innerHTML = whiteScore;
     }
     checkAdvantage();
 
     initBoardArrayFromDOM();
 
-    // Сбрасываем enPassantTarget (если не использовано, пропадает)
+    // === PROMOTION CHECK (если взятие сделала пешка) ===
+    if (type==='pawn') {
+        checkPromotion(pickedPiece);
+    }
+
     enPassantTarget = null;
 
     ifChecked(oppColor);
@@ -706,11 +865,10 @@ function capture(e) {
     changeTurn();
     turnIndicator();
     updateHistoryList();
+    checkAdvantage()
 }
 
-/***************************************************
- * 12) ОБРАБОТЧИК НАЖАТИЙ НА ДОСКУ
- ***************************************************/
+//Обработчик клика
 boardEl.addEventListener('click', (e)=>{
     const target = e.target;
     if (target.classList.contains('piece')) {

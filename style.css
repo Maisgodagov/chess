@@ -391,3 +391,78 @@ body {
     border-radius: 50px;
     background-color: #be1313a3;
 }
+
+.promotion-modal {
+    position: absolute; 
+    top: 0; 
+    width: 70px; 
+    height: auto; 
+    
+    background-color: #ede8e8;
+    
+    z-index: 999; /* поверх доски */
+  }
+  .black-modal {
+    top: auto;
+    bottom: 0;
+  }
+
+
+  .btn {
+    border: none;
+    width: 60px;
+    height: 60px;
+    padding: 5px;
+    margin: 5px;
+    background-color: transparent;
+  }
+  .btn-white-queen {
+    background-image: url(./img/queen-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.btn-white-rook {
+    background-image: url(./img/rook-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.btn-white-knight {
+    background-image: url(./img/knight-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.btn-white-bishop {
+    background-image: url(./img/bishop-white.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.btn-black-queen {
+    background-image: url(./img/queen-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+.btn-black-knight {
+    background-image: url(./img/knight-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+.btn-black-bishop {
+    background-image: url(./img/bishop-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
+
+.btn-black-rook {
+    background-image: url(./img/rook-black.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+}
