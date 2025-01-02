@@ -124,21 +124,20 @@ const clearLegalAttacks = () => {
 const getPawnMoves = (id) => {
     const cell = document.getElementById(id);
     const piece = cell.firstChild;
+    if (!piece) return;
+
     const row = parseInt(cell.getAttribute('cell-row'));
     const col = cell.getAttribute('cell-col');
-    const colId = parseInt(cell.getAttribute('cell-col-id'));
     const colLetters = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
     let legalMoves = [];
     let possibleAttack = [];
     const color = piece.getAttribute('color');
 
     if (piece && piece.getAttribute('type') === 'pawn' && turn === color) {
-        
         const direction = color ==='white' ? 1 : -1;
         const startRow = color === 'white' ? 2 : 7;
         const firstStep = `${col}${row + direction}`;
         const secondStep = `${col}${row + 2 * direction}`;
-
         const firstCell = document.getElementById(firstStep);
         if (firstCell && !firstCell.firstChild) {
             legalMoves.push(firstStep);
@@ -149,7 +148,6 @@ const getPawnMoves = (id) => {
                 }
             }
         }
-        
         const colIndex = colLetters.indexOf(col);
         const attackLeft = colIndex > 0 ? `${cols[colIndex - 1]}${row + direction}` : null;
         const attackRight = colIndex < 7 ? `${cols[colIndex + 1]}${row + direction}` : null;
@@ -173,21 +171,19 @@ const getPawnMoves = (id) => {
                 }
             }
         }
-
-        // Подсвечиваем возможные ходы
-        
-            legalMoves.forEach((move) => {
-                const targetCell = document.getElementById(move);
-                if (targetCell) {
-                    targetCell.classList.add('legal-move');
-                }
-            });
-            possibleAttack.forEach((attack) => {
-                const targetCell = document.getElementById(attack);
-                if (targetCell) {
-                    targetCell.classList.add('under-attack');
-                }
-            });    
+        const allMoves = [...legalMoves, ...possibleAttack];
+        const filteredMoves = filterMoveByCheck(id, allMoves, color);
+        // Подсвечиваем возможные ходы 
+        filteredMoves.forEach((moveId) => {
+            const targetCell = document.getElementById(moveId);
+            // если там вражеская фигура -> 'under-attack'
+            if (targetCell.firstChild && targetCell.firstChild.getAttribute('color') !== color) {
+                targetCell.classList.add('under-attack');
+            } else {
+                targetCell.classList.add('legal-move');
+            }
+        });
+    
     }
 }
 
@@ -589,7 +585,7 @@ const move = (e) => {
         clearLegalAttacks();
         dropPickedPiece();
         ifChecked(oppColor);
-        changeTurn();
+        
         turnIndicator();
         updateHistoryList();
     }
@@ -657,7 +653,6 @@ const capture = (e) => {
             }
         }
         ifChecked(oppColor);
-        changeTurn();
         turnIndicator();
         updateHistoryList();
     }
@@ -983,6 +978,9 @@ const getOppsLegalMoves = (color) => {
     const oppColor = color === 'white' ? 'black' : 'white';
     const oponents = document.querySelectorAll(`.piece[color="${oppColor}"]`);
     const opponentsArr = Array.from(oponents);
+
+    const savedTurn = turn;
+    turn = oppColor;
     let oponentsLegalMoves = [];
         opponentsArr.forEach((piece)=> {
             const cell = piece.parentNode;
@@ -994,8 +992,10 @@ const getOppsLegalMoves = (color) => {
                 oponentsLegalMoves.push(move.id)
             })
         }) 
+        
     clearLegalAttacks();
-    clearLegalMoves();   
+    clearLegalMoves(); 
+    turn = savedTurn
     return oponentsLegalMoves; 
 }
 
@@ -1046,3 +1046,30 @@ const getCheckPiece = (color) => {
 
     return null;
 };
+//симуляция хода и проверка на шах
+const simulateMove = (fromCell, toCell, color) => {
+    const piece = fromCell.firstChild;
+    if (!piece) return false;
+
+    const captured = toCell.firstChild;
+    toCell.appendChild(piece);
+    const stillInCheck = ifChecked(color);
+    fromCell.appendChild(piece);
+    if (captured) {
+        toCell.appendChild(captured);
+    }
+    return stillInCheck;
+}
+//фильтруем ходы, оставляем только те, которые устраняют/не генерируют шах
+const filterMoveByCheck = (cellId, moveIds, color) => {
+    const fromCell = document.getElementById(cellId);
+    const result = [];
+
+    moveIds.forEach((moveId)=> {
+        const toCell = document.getElementById(moveId);
+        if (!simulateMove(fromCell, toCell, color)) {
+            result.push(moveId);
+        }
+    })
+    return result;
+}

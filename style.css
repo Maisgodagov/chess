@@ -373,3 +373,21 @@ body {
 .moves-history-item {
     margin-bottom: 5px;
 }
+
+.checked {
+    position: relative;
+    display: flex;
+    margin: 0;
+}
+.checked::after {
+    content: '';
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    left: 1px;
+    top: 1px;
+    margin: 0;
+    padding: 0;
+    border-radius: 50px;
+    background-color: #be1313a3;
+}
