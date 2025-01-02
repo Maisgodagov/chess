@@ -389,7 +389,7 @@ body {
     margin: 0;
     padding: 0;
     border-radius: 50px;
-    background-color: #be1313a3;
+    background-color: #cf4f4fa3;
 }
 
 .promotion-modal {
@@ -466,3 +466,80 @@ body {
     background-size: contain;
     background-position: center;
 }
+
+/* style.css */
+
+/* Стили для Overlay выбора соперника */
+.selection-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.selection-modal {
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 80%;
+    max-width: 600px;
+}
+
+.opponents-list {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+}
+
+.opponent {
+    cursor: pointer;
+    padding: 10px;
+    border: 2px solid transparent;
+    border-radius: 10px;
+    transition: border 0.3s;
+    width: 120px;
+}
+
+.opponent:hover {
+    border: 2px solid #000;
+}
+
+.opponent-img {
+    width: 100px;
+    height: 100px;
+    object-fit: contain;
+}
+
+.color-selection {
+    margin-bottom: 20px;
+}
+
+.color-selection label {
+    margin: 0 10px;
+    font-size: 1.2em;
+}
+
+.start-game-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+    border: none;
+    background: #007BFF;
+    color: #fff;
+    border-radius: 5px;
+    transition: background 0.3s;
+}
+
+.start-game-button:hover {
+    background: #0056b3;
+}
+
+/* Стили для индикатора "Движок думает..." */
