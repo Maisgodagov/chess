@@ -7,36 +7,32 @@
     <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-    <!-- Индикатор "Движок думает..." -->
-    <div id="engine-thinking" style="display: none; position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.7); color: white; padding: 10px; border-radius: 5px;">
-        Движок думает...
+    <div id="engine-thinking" class="thinking font">
+        думает...
     </div>
-
-    <!-- Раздел Выбора Персонажа и Цвета -->
     <div id="selection-overlay" class="selection-overlay">
         <div class="selection-modal">
             <h2>Выберите оппонента</h2>
             <div class="opponents-list">
-                <!-- Пример Персонажа -->
                 <div class="opponent" data-depth="5" data-skill="0">
                     <img src="./img/rock.png" alt="Камень" class="opponent-img">
                     <h3>Камень</h3>
                 </div>
                 <div class="opponent" data-depth="10" data-skill="5">
-                    <img src="./img/easy.png" alt="Легкий" class="opponent-img">
+                    <img src="./img/ezy.png" alt="Легкий" class="opponent-img">
                     <h3>Легкий</h3>
                 </div>
                 <div class="opponent" data-depth="15" data-skill="10">
-                    <img src="./img/gm.png" alt="Гроссмейстер" class="opponent-img">
+                    <img src="./img/smart.png" alt="Гроссмейстер" class="opponent-img">
                     <h3>Гроссмейстер</h3>
                 </div>
                 <div class="opponent" data-depth="20" data-skill="15">
-                    <img src="./img/genius.png" alt="Сверхразум" class="opponent-img">
+                    <img src="./img/master.png" alt="Сверхразум" class="opponent-img">
                     <h3>Сверхразум</h3>
                 </div>
-                <!-- Добавьте больше персонажей по необходимости -->
             </div>
-            <h2>Выберите цвет</h2>
+            <div class="color-pick-wrapper">
+                <h2>Выберите цвет</h2>
             <div class="color-selection">
                 <label>
                     <input type="radio" name="player-color" value="white" checked>
@@ -47,18 +43,17 @@
                     Чёрные
                 </label>
             </div>
+            </div>
             <button id="start-game-button" class="start-game-button">Играть</button>
         </div>
     </div>
-
-    <!-- Основная Доска и Информация о Игроках -->
     <div class="board-wrapper flex">
         <div id="player-black" class="player-black flex">
             <div class="black-move-indicator" id="black-move-indicator"></div>
             <img src="./img/player.png" alt="Игрок 1" class="player-img">
             <div class="player-right-wrapper flex">
                 <div class="player-info">
-                    <div class="player-info-wrapper">
+                    <div class="player-info-wrapper" id="player-div">
                         <h3 class="player-name-black font-medium">Игрок 2</h3>
                         <span class="score" id="black-score">0</span>
                     </div>
@@ -76,7 +71,7 @@
             <div class="player-right-wrapper flex">
                 <div class="player-info">
                     <div class="player-info-wrapper">
-                        <h3 class="player-name-white font-medium">Игрок 1</h3>
+                        <h3 class="player-name-white font-medium">Игрок</h3>
                         <span class="score" id="white-score">0</span>
                     </div>
                 </div>
@@ -87,20 +82,15 @@
             </div>
         </div> 
     </div>
-    
-    <!-- История Ходов -->
     <div class="game-info" id="game-info">
         <ol class="moves-history-list" id="moves-history-list"></ol>
     </div>
-    
-    <!-- Модальное Окно Промоушена -->
     <div id="promotion-dialog" class="promotion-modal" style="display:none;">
-        <button data-type="queen" class="btn">Ферзь</button>
-        <button data-type="rook" class="btn">Ладья</button>
-        <button data-type="bishop" class="btn">Слон</button>
-        <button data-type="knight" class="btn">Конь</button>
+        <button data-type="queen" class="btn"></button>
+        <button data-type="rook" class="btn"></button>
+        <button data-type="bishop" class="btn"></button>
+        <button data-type="knight" class="btn"></button>
     </div>
-    
     <script src="./main.js" defer></script>
 </body>
 </html>

@@ -1,17 +1,11 @@
-/***************************************************
- * 1) ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ И DOM
- ***************************************************/
 const whiteStock = document.getElementById('white-taken-pieces');
 const blackStock = document.getElementById('black-taken-pieces');
 
 let whiteScore = 0;
 let blackScore = 0;
 
-let isPromotionPending = false; // Флаг для ожидания промоушена пользователя
+let isPromotionPending = false;
 
-/***************************************************
- * 2) ПОЛУЧЕНИЕ ОЧКОВ (WHITE/BLACK)
- ***************************************************/
 const getWhiteScore = () => {
     let score = 0;
     const pieces = boardEl.querySelectorAll('[color="white"]');
@@ -86,19 +80,26 @@ const opponents = [
         depth: 20,
         skill: 15
     }
-    // Добавьте больше персонажей по необходимости
 ];
 
-// Переменные для выбранных настроек
 let selectedOpponent = null;
-let playerColor = 'white'; // По умолчанию белые
+let playerColor = 'white';
+
+function setupOpponentSelection() {
+    const opponentsList = document.querySelectorAll('.opponent');
+    opponentsList.forEach((opponentEl) => {
+        opponentEl.addEventListener('click', () => {
+            opponentsList.forEach(el => el.classList.remove('selected-opponent'));
+            opponentEl.classList.add('selected-opponent');
+            const opponentName = opponentEl.querySelector('h3').innerText;
+            selectedOpponent = opponents.find(op => op.name === opponentName);
+        });
+    });
+}
 
 const turnWhiteIndicator = document.getElementById('white-move-indicator');
 const turnBlackIndicator = document.getElementById('black-move-indicator');
 
-/***************************************************
- * 3) ПЕРЕСЧЁТ ПРЕИМУЩЕСТВА, ОТОБРАЖЕНИЕ ХОДА
- ***************************************************/
 function checkAdvantage() {
     whiteScore = getWhiteScore();
     blackScore = getBlackScore();
@@ -127,9 +128,6 @@ function turnIndicator() {
 }
 turnIndicator();
 
-/***************************************************
- * 4) СОЗДАНИЕ ДОСКИ (DOM) И НАЧАЛЬНОЙ РАССТАНОВКИ
- ***************************************************/
 const boardEl = document.getElementById('board');
 const boardSize = 64;
 const cols = ['a','b','c','d','e','f','g','h'];
@@ -152,8 +150,6 @@ function createPiece(type, color) {
     piece.setAttribute('color', color);
     return piece;
 }
-
-// Генерация клеток и заполнение начального расположения
 for (let i = 0; i < boardSize; i++) {
     const cell = document.createElement('div');
     cell.classList.add('cell');
@@ -163,8 +159,6 @@ for (let i = 0; i < boardSize; i++) {
         const piece = createPiece(type, color);
         cell.append(piece);
     }
-
-    // row=8..1 (снизу вверх), col=1..8
     const row = Math.ceil((boardSize - i) / 8);
     const col = (i % 8) + 1;
     const file = cols[(i % 8)];
@@ -185,21 +179,18 @@ for (let i = 0; i < boardSize; i++) {
     boardEl.append(cell);
 }
 
-/***************************************************
- * 5) МАССИВ boardArray ДЛЯ ЛОГИКИ
- ***************************************************/
 let boardArray = new Array(8).fill(null).map(() => new Array(8).fill(null));
 
 const fileToIndex = { 'a':0,'b':1,'c':2,'d':3,'e':4,'f':5,'g':6,'h':7 };
 
 function idToRC(id) {
-    // Пример: "a1" => rank=1 => row=7
     const file = id[0];
     const rank = parseInt(id[1], 10);
     const col = fileToIndex[file];
     const row = 8 - rank;
     return [row, col];
 }
+
 function rcToId(row, col) {
     const files = ['a','b','c','d','e','f','g','h'];
     let f = files[col];
@@ -231,9 +222,6 @@ function initBoardArrayFromDOM() {
 }
 initBoardArrayFromDOM();
 
-/***************************************************
- * 6) ОЧИСТКА ПОДСВЕТКИ
- ***************************************************/
 function dropPickedPiece() {
     document.querySelectorAll('.picked-piece').forEach((p) => {
         p.classList.remove('picked-piece');
@@ -256,20 +244,12 @@ function clearLegalAttacks() {
     });
 }
 
-/***************************************************
- * 7) EN PASSANT: ГЛОБАЛЬНАЯ ПЕРЕМЕННАЯ
- ***************************************************/
 let enPassantTarget = null;
 
-/***************************************************
- * 8) ГЕНЕРАТОР ХОДОВ (ПЕШКИ, КОНЬ, СЛОН И Т.Д.) + PSEUDO
- ***************************************************/
-// Проверка выхода за пределы доски
 function onBoard(r, c) {
     return r >= 0 && r < 8 && c >= 0 && c < 8;
 }
 
-// Проверка возможности хода или взятия
 function canMoveOrCapture(board, r, c, color) {
     if (!onBoard(r, c)) return false;
     const target = board[r][c];
@@ -278,7 +258,6 @@ function canMoveOrCapture(board, r, c, color) {
     return false;
 }
 
-// ПЕШКА
 function generatePawnMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -286,18 +265,14 @@ function generatePawnMoves(board, r, c) {
     const dir = (color === 'white') ? -1 : +1;
     let moves = [];
 
-    // Ход вперёд на 1 клетку
     let f1 = r + dir;
     if (onBoard(f1, c) && !board[f1][c]) {
-        // Промоушен
         if ((color === 'white' && f1 === 0) || (color === 'black' && f1 === 7)) {
             moves.push({ fromR: r, fromC: c, toR: f1, toC: c, enPassant: false, promotion: true });
         } else {
             moves.push({ fromR: r, fromC: c, toR: f1, toC: c, enPassant: false });
         }
     }
-
-    // Если на стартовой и чисто перед
     let startRow = (color === 'white') ? 6 : 1;
     if (r === startRow && !board[f1][c]) {
         let f2 = r + 2 * dir;
@@ -305,14 +280,11 @@ function generatePawnMoves(board, r, c) {
             moves.push({ fromR: r, fromC: c, toR: f2, toC: c, enPassant: false, doublePawn: true });
         }
     }
-
-    // Взятия по диагонали (обычные)
     for (let dc of [-1, +1]) {
         let cc = c + dc;
         if (onBoard(f1, cc)) {
             const targ = board[f1][cc];
             if (targ && targ.color !== color) {
-                // Промоушен
                 if ((color === 'white' && f1 === 0) || (color === 'black' && f1 === 7)) {
                     moves.push({
                         fromR: r, fromC: c,
@@ -331,7 +303,6 @@ function generatePawnMoves(board, r, c) {
         }
     }
 
-    // EN PASSANT
     if (enPassantTarget) {
         const epId = enPassantTarget;
         const [epR, epC] = idToRC(epId);
@@ -350,7 +321,6 @@ function generatePawnMoves(board, r, c) {
     return moves;
 }
 
-// КОНЬ
 function generateKnightMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -369,7 +339,6 @@ function generateKnightMoves(board, r, c) {
     return moves;
 }
 
-// СЛОН
 function generateBishopMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -392,7 +361,6 @@ function generateBishopMoves(board, r, c) {
     return moves;
 }
 
-// ЛАДЬЯ
 function generateRookMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -415,12 +383,10 @@ function generateRookMoves(board, r, c) {
     return moves;
 }
 
-// КОРОЛЕВА
 function generateQueenMoves(board, r, c) {
     return generateRookMoves(board, r, c).concat(generateBishopMoves(board, r, c));
 }
 
-// КОРОЛЬ
 function generateKingMoves(board, r, c) {
     const piece = board[r][c];
     if (!piece) return [];
@@ -440,7 +406,6 @@ function generateKingMoves(board, r, c) {
     return moves;
 }
 
-// Псевдоходы
 function generatePseudoMoves(board, color) {
     let moves = [];
     for (let r = 0; r < 8; r++) {
@@ -473,7 +438,6 @@ function generatePseudoMoves(board, color) {
     return moves;
 }
 
-// Проверка, под боем ли король
 function isKingInCheck(board, color) {
     let kr = -1, kc = -1;
     for (let r = 0; r < 8; r++) {
@@ -486,14 +450,13 @@ function isKingInCheck(board, color) {
         if (kr !== -1) break;
     }
     if (kr === -1) {
-        return true; // Король отсутствует, считаем под боем
+        return true;
     }
     const oppColor = (color === 'white') ? 'black' : 'white';
     const oppMoves = generatePseudoMoves(board, oppColor);
     return oppMoves.some(m => m.toR === kr && m.toC === kc);
 }
 
-// Генерация всех легальных ходов
 function generateAllLegalMoves(board, color) {
     const pseudo = generatePseudoMoves(board, color);
     let legal = [];
@@ -502,7 +465,6 @@ function generateAllLegalMoves(board, color) {
         const piece = board[fromR][fromC];
         const savedTarget = board[toR][toC];
 
-        // EN PASSANT
         let capturedSquare = { r: toR, c: toC };
         if (enPassant) {
             const dir = (piece.color === 'white') ? +1 : -1;
@@ -511,16 +473,12 @@ function generateAllLegalMoves(board, color) {
         }
 
         const savedCaptured = board[capturedSquare.r][capturedSquare.c];
-
-        // «Виртуальный» ход
         board[fromR][fromC] = null;
         board[capturedSquare.r][capturedSquare.c] = null;
         board[toR][toC] = piece;
 
-        // Проверяем шах
         const inCheck = isKingInCheck(board, color);
 
-        // Откат
         board[fromR][fromC] = piece;
         board[toR][toC] = savedTarget;
         if (savedCaptured) {
@@ -534,42 +492,25 @@ function generateAllLegalMoves(board, color) {
     return legal;
 }
 
-/***************************************************
- * 9) ПОКАЗАТЬ ХОДЫ
- ***************************************************/
 function showLegalMoves(cellId) {
-    // Снимаем старые подсветки
     clearLegalMoves();
     clearLegalAttacks();
-
-    // Обновляем boardArray из DOM
     initBoardArrayFromDOM();
-
-    // Получаем координаты и фигуру
     const [r, c] = idToRC(cellId);
     const piece = boardArray[r][c];
-    if (!piece) return;         // если клетки нет
-    if (piece.color !== turn) return; // если не тот цвет ходит
-
-    // Генерируем все ЛЕГАЛЬНЫЕ ходы текущего цвета
+    if (!piece) return;
+    if (piece.color !== turn) return;
     const allMoves = generateAllLegalMoves(boardArray, turn);
-    // Фильтруем только те, что от (r,c)
     const pieceMoves = allMoves.filter(m => (m.fromR === r && m.fromC === c));
 
-    // Для каждого хода подсвечиваем клетку
     pieceMoves.forEach((move) => {
         const toId = rcToId(move.toR, move.toC);
         const cellEl = document.getElementById(toId);
         if (!cellEl) return;
-
-        // Если это enPassant
         if (move.enPassant === true) {
-            // Отметим клетку как "взятие" (под атакой), даже если там пусто
             cellEl.classList.add('under-attack');
             return;
         }
-
-        // Обычный случай: если там есть чужая фигура => .under-attack
         const targPiece = cellEl.querySelector('.piece');
         if (targPiece) {
             const tgtColor = targPiece.getAttribute('color');
@@ -577,19 +518,13 @@ function showLegalMoves(cellId) {
                 cellEl.classList.add('under-attack');
             }
         } else {
-            // Пустая клетка => .legal-move
             cellEl.classList.add('legal-move');
         }
     });
-
-    // Рокировка
     legalCastleShort(piece.color);
     legalCastleLong(piece.color);
 }
 
-/***************************************************
- * 10) piecePick, updateHistoryList
- ***************************************************/
 function piecePick(e) {
     const piece = e.target;
     if (!piece.classList.contains('piece')) return;
@@ -610,7 +545,6 @@ function piecePick(e) {
     }
 }
 
-// История ходов
 const movesHistory = [];
 const movesHistoryList = document.getElementById('moves-history-list');
 
@@ -648,9 +582,6 @@ function capitalize(word) {
     return word.charAt(0).toUpperCase() + word.slice(1);
 }
 
-/***************************************************
- * 11) ВЗЯТИЕ НА ПРОХОДЕ
- ***************************************************/
 function setEnPassantIfNeeded(fromR, fromC, toR, toC, piece) {
     if (piece.type === 'pawn') {
         const dir = (piece.color === 'white') ? -1 : +1;
@@ -658,16 +589,12 @@ function setEnPassantIfNeeded(fromR, fromC, toR, toC, piece) {
             const midRow = (fromR + toR) / 2;
             const midCol = toC;
             enPassantTarget = rcToId(midRow, midCol);
-            console.log('setEnPassantTarget =>', enPassantTarget);
             return;
         }
     }
     enPassantTarget = null;
 }
 
-/***************************************************
- * 12) ПРОМОУШЕН
- ***************************************************/
 function checkPromotion(pickedPiece) {
     if (!pickedPiece) return;
     if (pickedPiece.getAttribute('type') !== 'pawn') return;
@@ -681,7 +608,6 @@ function checkPromotion(pickedPiece) {
 
     if ((color === 'white' && row === 0) || (color === 'black' && row === 7)) {
         parentCell.style.position = 'relative';
-        console.log(`Promotion for ${color} pawn at`, cellId);
         openPromotionDialog(pickedPiece, color);
     }
 }
@@ -689,8 +615,6 @@ function checkPromotion(pickedPiece) {
 function openPromotionDialog(pawnEl, color) {
     const dialog = document.getElementById('promotion-dialog');
     if (!dialog) {
-        console.warn("No element #promotion-dialog found in HTML!");
-        // Если нет — сделаем автоматическую ферзь
         promotePiece(pawnEl, 'queen', color);
         return;
     }
@@ -702,11 +626,7 @@ function openPromotionDialog(pawnEl, color) {
     } else if (color === 'white') {
         dialog.classList.remove('black-modal');
     }
-
-    // Устанавливаем флаг ожидания промоушена
     isPromotionPending = true;
-
-    // Для удобства, удалим старые «listeners»
     const buttons = dialog.querySelectorAll('button');
     buttons.forEach((btn) => {
         btn.classList.remove(
@@ -717,24 +637,18 @@ function openPromotionDialog(pawnEl, color) {
         );
         const figureType = btn.getAttribute('data-type');
         btn.classList.add(`btn-${color}-${figureType}`);
-        btn.onclick = null; // очистим
+        btn.onclick = null;
     });
 
-    // Навешиваем новые обработчики событий
     buttons.forEach((btn) => {
         btn.onclick = () => {
             const newType = btn.getAttribute('data-type'); 
-            // Вызываем promotePiece
             promotePiece(pawnEl, newType, color);
-            // Закрываем окно
             dialog.style.display = 'none';
-            // Синхронизируем boardArray
             initBoardArrayFromDOM();
             checkAdvantage();
-            // Сбрасываем флаг
             isPromotionPending = false;
-            // После промоушена отправляем FEN движку, если сейчас ход бота
-            if (turn === 'black') { // Предполагается, что бот играет черными
+            if (turn === 'black') {
                 sendCurrentFENToEngine();
             }
         };
@@ -742,19 +656,12 @@ function openPromotionDialog(pawnEl, color) {
 }
 
 function promotePiece(pieceEl, newType, color) {
-    // Удаляем все классы figure, например 'white-pawn', 'white-rook' и т.д.
     pieceEl.classList.remove(`${color}-pawn`, `${color}-knight`, `${color}-bishop`, `${color}-rook`, `${color}-queen`);
-    // Добавляем новый класс
     pieceEl.classList.add(`${color}-${newType}`);
-    // Меняем атрибут type
     pieceEl.setAttribute('type', newType);
-
     console.log(`promotePiece: ${color} pawn -> ${newType}`);
 }
 
-/***************************************************
- * 13) ХОД, CAPTURE, ИНДИКАТОР ХОДА, И Т.Д.
- ***************************************************/
 function changeTurn() {
     turn = (turn === 'white') ? 'black' : 'white';
 }
@@ -771,15 +678,12 @@ function move(e) {
     const oppColor = (color === 'white') ? 'black' : 'white';
 
     movesHistory.push(`${color} ${type} moves from ${fromId} to ${toId}`);
-
     targetCell.appendChild(pickedPiece);
 
     clearLegalMoves();
     clearLegalAttacks();
     dropPickedPiece();
-
     initBoardArrayFromDOM();
-
     const [fr, fc] = idToRC(fromId);
     const [tr, tc] = idToRC(toId);
     const movedPiece = boardArray[tr][tc];
@@ -791,8 +695,6 @@ function move(e) {
     turnIndicator();
     checkAdvantage();
     updateHistoryList();
-
-    // После хода пользователя отправляем FEN движку
     sendCurrentFENToEngine();
 }
 
@@ -819,7 +721,6 @@ function capture(e) {
         targetType = targetPiece.getAttribute('type');
         targetColor = targetPiece.getAttribute('color');
     }
-    // Проверяем enPassant
     let isEnPassant = false;
     if (
         type === 'pawn' &&
@@ -848,7 +749,6 @@ function capture(e) {
         targetCell.appendChild(pickedPiece);
 
     } else {
-        // Обычное взятие
         movesHistory.push(`${color} ${type} takes ${targetColor} ${targetType} ${fromId} to ${toId}`);
 
         targetCell.appendChild(pickedPiece);
@@ -861,7 +761,6 @@ function capture(e) {
     clearLegalAttacks();
     dropPickedPiece();
 
-    // Добавляем снятую фигуру в «сток» + очки
     if (targetColor === 'white') {
         const dummyPiece = createPiece(targetType, 'white');
         blackStock.appendChild(dummyPiece);
@@ -886,7 +785,6 @@ function capture(e) {
 
     initBoardArrayFromDOM();
 
-    // === PROMOTION CHECK (если взятие сделала пешка) ===
     if (type === 'pawn') {
         checkPromotion(pickedPiece);
     }
@@ -900,14 +798,9 @@ function capture(e) {
     turnIndicator();
     updateHistoryList();
     checkAdvantage();
-
-    // После хода пользователя отправляем FEN движку
     sendCurrentFENToEngine();
 }
 
-/***************************************************
- * 14) РОКИРОВКА
- ***************************************************/
 function ifKingMoved(color) {
     let result = false;
     movesHistory.forEach((move) => {
@@ -1021,15 +914,11 @@ function shortCastle(e) {
     dropPickedPiece();
 
     initBoardArrayFromDOM();
-
-    // Обновляем кастлинг
     castlingRights = updateCastlingRightsAfterMove(color, type, null, null);
 
     changeTurn();
     turnIndicator();
     updateHistoryList();
-
-    // После хода пользователя отправляем FEN движку
     sendCurrentFENToEngine();
 }
 function longCastle(e) {
@@ -1062,25 +951,19 @@ function longCastle(e) {
 
     initBoardArrayFromDOM();
 
-    // Обновляем кастлинг
     castlingRights = updateCastlingRightsAfterMove(color, type, null, null);
 
     changeTurn();
     turnIndicator();
     updateHistoryList();
 
-    // После хода пользователя отправляем FEN движку
     sendCurrentFENToEngine();
 }
 
-/***************************************************
- * 14) ПРОВЕРКА ШАХА + МАТ / ПАТ
- ***************************************************/
 function ifChecked(color) {
     initBoardArrayFromDOM();
     const inCheck = isKingInCheck(boardArray, color);
 
-    // Удалим .checked, если был
     const whiteKingEl = document.querySelector('.white-king');
     const blackKingEl = document.querySelector('.black-king');
     if (whiteKingEl) whiteKingEl.classList.remove('checked');
@@ -1090,7 +973,6 @@ function ifChecked(color) {
         console.log(`Шах ${color} королю`);
         const kingEl = document.querySelector(`.${color}-king`);
         if (kingEl) {
-            // Пример: добавим класс .checked
             kingEl.classList.add('checked');
         }
     }
@@ -1104,19 +986,12 @@ function checkEndgameState(color) {
     if (legalMoves.length === 0) {
         if (inCheck) {
             console.log(`Мат! ${color} проиграл`);
-            alert(`Мат! ${color} проиграл.`);
-            // Можно добавить логику окончания игры
         } else {
             console.log(`Пат! Ничья`);
-            alert('Пат! Ничья.');
-            // Можно добавить логику окончания игры
         }
     }
 }
 
-/***************************************************
- * 15) ОБНОВЛЕНИЕ CASTLING RIGHTS
- ***************************************************/
 function updateCastlingRightsAfterMove(color, type, fromId, toId) {
     let newCastlingRights = castlingRights;
 
@@ -1146,7 +1021,6 @@ function updateCastlingRightsAfterMove(color, type, fromId, toId) {
         }
     }
 
-    // Если после удаления строка пуста, заменяем на "-"
     if (newCastlingRights === '') {
         newCastlingRights = '-';
     }
@@ -1154,30 +1028,14 @@ function updateCastlingRightsAfterMove(color, type, fromId, toId) {
     return newCastlingRights;
 }
 
-/***************************************************
- * 16) ПАРАМЕТРЫ ДЛЯ FEN/PGN: РОКИРОВКИ, EN PASSANT, ХОДЫ
- ***************************************************/
-let castlingRights = "KQkq";     // по умолчанию — все разрешены
-let enPassantSquare = null;      // например, "e3" или null
-let halfmoveClock = 0;           // для 50-ходового правила
-let fullmoveNumber = 1;          // номер полного хода
 
-/***************************************************
- * 17) boardToFEN и fenToBoard
- ***************************************************/
+let castlingRights = "KQkq";
+let enPassantSquare = null;
+let halfmoveClock = 0;
+let fullmoveNumber = 1;
 
-/**
- * Преобразовать boardArray + прочие параметры в полноценную FEN
- * @param {Array} board - boardArray[r][c] = {type, color}, r=0..7
- * @param {string} turn - "white" или "black"
- * @param {string} castling - например "KQkq" или "-"
- * @param {string|null} enPassant - например "e3" или "-"
- * @param {number} halfmove - halfmove clock
- * @param {number} fullmove - fullmove number
- * @returns {string} - FEN
- */
+
 function boardToFEN(board, turn, castling, enPassant, halfmove, fullmove) {
-    // 1) Piece placement
     let fenRows = [];
     for (let row = 0; row < 8; row++) {
         let emptyCount = 0;
@@ -1201,33 +1059,23 @@ function boardToFEN(board, turn, castling, enPassant, halfmove, fullmove) {
     }
     const piecePlacement = fenRows.join('/');
 
-    // 2) active color
     const activeColor = (turn === 'white') ? 'w' : 'b';
 
-    // 3) castling
     let castlingStr = castling;
     if (!castlingStr || castlingStr.length === 0) {
         castlingStr = "-";
     }
 
-    // 4) enPassant
     let enPassantStr = enPassant ? enPassant : "-";
 
-    // 5) halfmove
     const halfmoveStr = halfmove.toString();
 
-    // 6) fullmove
     const fullmoveStr = fullmove.toString();
 
-    // Итог
     const fen = `${piecePlacement} ${activeColor} ${castlingStr} ${enPassantStr} ${halfmoveStr} ${fullmoveStr}`;
     return fen;
 }
 
-/**
- * Вспомогательная функция: {type, color} -> FEN-символ
- * p => p/P, r => r/R, n => n/N, b => b/B, q => q/Q, k => k/K
- */
 function pieceToFenSymbol(piece) {
     let s = '';
     switch(piece.type) {
@@ -1244,14 +1092,7 @@ function pieceToFenSymbol(piece) {
     return s;
 }
 
-/**
- * Преобразовать FEN-строку в boardArray + параметры.
- * @param {string} fen - например "rnbqkbnr/pppppppp/8/... w KQkq e3 0 1"
- * @returns {object} { board, turn, castling, enPassant, halfmove, fullmove }
- */
 function fenToBoard(fen) {
-    // Разбиваем по пробелам
-    // Пример: "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
     const parts = fen.split(' ');
     if (parts.length < 6) {
         console.warn("Invalid FEN:", fen);
@@ -1259,9 +1100,8 @@ function fenToBoard(fen) {
     }
     const [placement, activeColor, castling, enPassant, halfmoveStr, fullmoveStr] = parts;
 
-    // 1) Заполнить boardArray
     let newBoard = new Array(8).fill(null).map(() => new Array(8).fill(null));
-    const ranks = placement.split('/'); // 8 строк
+    const ranks = placement.split('/');
     if (ranks.length !== 8) {
         console.warn("Invalid piecePlacement in FEN:", placement);
         return null;
@@ -1272,34 +1112,26 @@ function fenToBoard(fen) {
         for (let i = 0; i < rankStr.length; i++) {
             const ch = rankStr[i];
             if (/\d/.test(ch)) {
-                // цифра => столько пустых
                 const emptyCount = parseInt(ch, 10);
                 for (let k = 0; k < emptyCount; k++) {
                     newBoard[row][col] = null;
                     col++;
                 }
             } else {
-                // Это буква (r,n,b,q,k,p)
                 const pieceObj = fenSymbolToPiece(ch);
                 newBoard[row][col] = pieceObj;
                 col++;
             }
         }
     }
-
-    // 2) turn
     let turnVal = (activeColor === 'w') ? 'white' : 'black';
 
-    // 3) castling
     let castlingStr = (castling === '-') ? '' : castling;
 
-    // 4) enPassant
     let enPassantVal = (enPassant === '-') ? null : enPassant;
 
-    // 5) halfmove
     let halfmoveVal = parseInt(halfmoveStr, 10);
 
-    // 6) fullmove
     let fullmoveVal = parseInt(fullmoveStr, 10);
 
     return {
@@ -1312,11 +1144,7 @@ function fenToBoard(fen) {
     };
 }
 
-/**
- * Вспомогательная: символ FEN -> {type, color}
- */
 function fenSymbolToPiece(ch) {
-    // ch либо верхний регистр (белая фигура), либо нижний (чёрная)
     const isWhite = (ch === ch.toUpperCase());
     const lower = ch.toLowerCase();
     let type = '';
@@ -1335,13 +1163,6 @@ function fenSymbolToPiece(ch) {
     return { type, color, hasMoved: false };
 }
 
-/***************************************************
- * 17) ПРИМЕНЕНИЕ ХОДА ДВИЖКА
- ***************************************************/
-/**
- * Применить ход, полученный от движка Stockfish
- * @param {string} uciMove - ход в формате UCI, например "e2e4" или "e7e8q"
- */
 function applyEngineMove(uciMove) {
     console.log(`Applying engine move: ${uciMove}`);
     // Пример: "e2e4" или "e7e8q"
@@ -1368,7 +1189,6 @@ function applyEngineMove(uciMove) {
         return;
     }
 
-    // Проверка на взятие на проходе
     let isEnPassant = false;
     if (piece.getAttribute('type') === 'pawn') {
         const [fromR, fromC] = idToRC(fromId);
@@ -1381,7 +1201,6 @@ function applyEngineMove(uciMove) {
         }
     }
 
-    // Если обычное взятие (не en passant)
     if (!isEnPassant && toCell.firstChild) {
         const targetPiece = toCell.querySelector('.piece');
         if (targetPiece) {
@@ -1389,7 +1208,6 @@ function applyEngineMove(uciMove) {
             const targetColor = targetPiece.getAttribute('color');
             targetPiece.remove();
 
-            // Добавляем снятую фигуру в «сток» + очки
             if (targetColor === 'white') {
                 const dummyPiece = createPiece(targetType, 'white');
                 blackStock.appendChild(dummyPiece);
@@ -1428,7 +1246,6 @@ function applyEngineMove(uciMove) {
             const targetColor = enemyPawn.getAttribute('color');
             enemyPawn.remove();
 
-            // Добавляем снятую фигуру в «сток» + очки
             if (targetColor === 'white') {
                 const dummyPiece = createPiece(targetType, 'white');
                 blackStock.appendChild(dummyPiece);
@@ -1453,25 +1270,20 @@ function applyEngineMove(uciMove) {
         }
     }
 
-    // Перемещаем фигуру
     toCell.appendChild(piece);
     fromCell.classList.remove('picked-piece');
 
-    // Если есть промоушен
     if (promo) {
-        // Промоушен от бота - выполняем автоматически
         const newTypeMap = { 'q': 'queen', 'r': 'rook', 'b': 'bishop', 'n': 'knight' };
         const newType = newTypeMap[promo];
         if (newType) {
             promotePiece(piece, newType, piece.getAttribute('color'));
         } else {
             console.warn(`Unknown promotion type from engine: ${promo}`);
-            // По умолчанию - ферзь
             promotePiece(piece, 'queen', piece.getAttribute('color'));
         }
     }
 
-    // Обновляем историю
     movesHistory.push(`engine ${piece.getAttribute('type')} moves from ${fromId} to ${toId}`);
     updateHistoryList();
 
@@ -1481,13 +1293,10 @@ function applyEngineMove(uciMove) {
 
     initBoardArrayFromDOM();
 
-    // Обновляем глобальные переменные
     const [fr, fc] = idToRC(fromId);
     const [tr, tc] = idToRC(toId);
     const movedPiece = boardArray[tr][tc];
     setEnPassantIfNeeded(fr, fc, tr, tc, movedPiece);
-
-    // Обновляем castlingRights, halfmoveClock и fullmoveNumber
     castlingRights = updateCastlingRightsAfterMove(movedPiece.color, movedPiece.type, fromId, toId);
     if (movedPiece.type === 'pawn' || isEnPassant) {
         halfmoveClock = 0;
@@ -1498,8 +1307,6 @@ function applyEngineMove(uciMove) {
     if (movedPiece.color === 'black') {
         fullmoveNumber += 1;
     }
-
-    // Обновляем FEN
     updateFENVariables();
 
     ifChecked((movedPiece.color === 'white') ? 'black' : 'white');
@@ -1511,31 +1318,19 @@ function applyEngineMove(uciMove) {
     updateHistoryList();
 }
 
-/***************************************************
- * 17) ПОДКЛЮЧЕНИЕ STOCKFISH И НАЧАЛО ИГРЫ
- ***************************************************/
-
-// Подключение Stockfish через Web Worker
-let engineWorker = new Worker('engine/engineWorker.js'); // Убедитесь, что путь корректен
+let engineWorker = new Worker('engine/engineWorker.js');
 
 engineWorker.onmessage = function(e) {
     const line = e.data;
     console.log("Engine says:", line);
 
-    // Ловим bestmove ...
     if (typeof line === 'string' && line.startsWith("bestmove")) {
         const parts = line.split(" ");
-        const best = parts[1]; // e2e4 и т.п.
+        const best = parts[1];
         console.log("Engine bestmove =", best);
-
-        // Генерация рандомной задержки от 2000 до 10000 миллисекунд
-        const delay = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000; // от 2 до 10 секунд
+        const delay = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
         console.log(`Задержка перед ходом бота: ${delay} мс`);
-
-        // Отображение индикатора "Движок думает..."
         showEngineThinking();
-
-        // Установка таймера для применения хода после задержки
         setTimeout(() => {
             applyEngineMove(best);
             hideEngineThinking();
@@ -1548,35 +1343,25 @@ function sendCmdToEngine(cmd) {
     engineWorker.postMessage(cmd);
 }
 
-// Инициализация движка
 sendCmdToEngine("uci");
 sendCmdToEngine("isready");
 sendCmdToEngine("ucinewgame");
 
-// Установка начального Skill Level (например, 10)
-let engineDepth = 12; // Средняя глубина по умолчанию
-setEngineSkillLevel(10); // Средняя сложность по умолчанию
-// Если вы хотите, чтобы движок делал первый ход (если игрок играет черными)
+let engineDepth = 12;
+setEngineSkillLevel(10);
 function startEngineIfNeeded() {
     if (turn === 'black') {
         const fen = boardToFEN(boardArray, turn, castlingRights, enPassantSquare, halfmoveClock, fullmoveNumber);
         console.log("Setting position to FEN:", fen);
         sendCmdToEngine("position fen " + fen);
-        sendCmdToEngine("go depth " + engineDepth); // Используем переменную глубины
+        sendCmdToEngine("go depth " + engineDepth);
     }
 }
 
-// Вызываем при инициализации
 startEngineIfNeeded();
 
-/***************************************************
- * 18) Функции для взаимодействия с движком
- ***************************************************/
-
-// Отправить текущую позицию движку
 function sendCurrentFENToEngine() {
     if (isPromotionPending) {
-        console.log("Promotion is pending. Waiting to send FEN to engine.");
         return;
     }
     const fen = boardToFEN(
@@ -1587,21 +1372,19 @@ function sendCurrentFENToEngine() {
         halfmoveClock,
         fullmoveNumber
     );
-    console.log("Sending FEN to engine:", fen);
     sendCmdToEngine("position fen " + fen);
-    sendCmdToEngine("go depth " + engineDepth); // Используем переменную глубины
+    sendCmdToEngine("go depth " + engineDepth);
 }
 
 function showEngineThinking() {
     const thinkingEl = document.getElementById('engine-thinking');
+    const playerDiv = document.getElementById('player-div')
     if (thinkingEl) {
         thinkingEl.style.display = 'block';
+        playerDiv.appendChild(thinkingEl);
     }
 }
 
-/**
- * Скрыть индикатор "Движок думает..."
- */
 function hideEngineThinking() {
     const thinkingEl = document.getElementById('engine-thinking');
     if (thinkingEl) {
@@ -1613,21 +1396,14 @@ function setupOpponentSelection() {
     const opponentsList = document.querySelectorAll('.opponent');
     opponentsList.forEach((opponentEl) => {
         opponentEl.addEventListener('click', () => {
-            // Снимите выделение со всех
             opponentsList.forEach(el => el.classList.remove('selected-opponent'));
-            // Выделите выбранный
             opponentEl.classList.add('selected-opponent');
-            // Сохраните выбранного соперника
             const opponentName = opponentEl.querySelector('h3').innerText;
             selectedOpponent = opponents.find(op => op.name === opponentName);
-            console.log('Selected opponent:', selectedOpponent);
         });
     });
 }
 
-/**
- * Обработчик Начала Игры
- */
 function setupStartGameButton() {
     const startButton = document.getElementById('start-game-button');
     startButton.addEventListener('click', () => {
@@ -1635,68 +1411,42 @@ function setupStartGameButton() {
             alert('Пожалуйста, выберите соперника.');
             return;
         }
-        // Получите выбранный цвет
         const colorRadios = document.getElementsByName('player-color');
         colorRadios.forEach((radio) => {
             if (radio.checked) {
                 playerColor = radio.value;
             }
         });
-        console.log('Selected color:', playerColor);
-
-        // Установите настройки движка
         engineDepth = selectedOpponent.depth;
         const skillLevel = selectedOpponent.skill;
         setEngineSkillLevel(skillLevel);
 
-        // Обновите отображение игроков
         updatePlayerDisplays();
 
-        // Скрыть overlay выбора
         const selectionOverlay = document.getElementById('selection-overlay');
         selectionOverlay.style.display = 'none';
-
-        // Установить начальный ход
         turn = (playerColor === 'white') ? 'white' : 'black';
         turnIndicator();
 
-        // Если бот играет белыми, сделайте первый ход
         if (turn === 'black') {
             const fen = boardToFEN(boardArray, turn, castlingRights, enPassantSquare, halfmoveClock, fullmoveNumber);
-            console.log("Setting position to FEN:", fen);
             sendCmdToEngine("position fen " + fen);
             sendCmdToEngine("go depth " + engineDepth);
         }
     });
 }
 
-/**
- * Обновить Отображение Игроков
- */
 function updatePlayerDisplays() {
-    // Обновите информацию о игроке-боте
     if (playerColor === 'white') {
-        // Бот играет черными
         document.querySelector('#player-black .player-name-black').innerText = selectedOpponent.name;
         document.querySelector('#player-black .player-img').src = selectedOpponent.img;
     } else {
-        // Бот играет белыми
         document.querySelector('#player-white .player-name-white').innerText = selectedOpponent.name;
         document.querySelector('#player-white .player-img').src = selectedOpponent.img;
     }
 }
 
-
-
-/***************************************************
- * 19) СОБРАТЬ ВСЕ ВМЕСТЕ
- ***************************************************/
-
-// Обработчик клика
-// Обработчик клика
 boardEl.addEventListener('click', (e) => {
-   
-
     const target = e.target;
     if (target.classList.contains('piece')) {
         piecePick(e);
@@ -1714,31 +1464,19 @@ boardEl.addEventListener('click', (e) => {
     }
 });
 
-
-/***************************************************
- * 20) ОБНОВЛЕНИЕ FEN-ПЕРЕМЕННЫХ
- ***************************************************/
 function updateFENVariables() {
-    // Обновляем castlingRights уже происходит при ходах
-    // Обновляем enPassantSquare
     if (enPassantTarget) {
         enPassantSquare = enPassantTarget;
     } else {
         enPassantSquare = null;
     }
-
-    // Обновляем halfmoveClock и fullmoveNumber уже происходит при ходах
 }
 function setEngineSkillLevel(level) {
-    // Устанавливаем Skill Level от 0 до 20
     level = Math.max(0, Math.min(level, 20));
     sendCmdToEngine(`setoption name Skill Level value ${level}`);
-    console.log(`Engine Skill Level set to ${level}`);
 }
 
-// Функция для установки глубины поиска
 function setEngineDepth(level) {
-    // Устанавливаем глубину от 1 до 20
     engineDepth = Math.max(1, Math.min(level, 20));
     console.log(`Engine depth set to ${engineDepth}`);
 }

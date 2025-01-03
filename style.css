@@ -17,6 +17,7 @@
     font-weight: 600;
     font-style: normal;
   }
+  
 * {
     box-sizing: border-box;
 }
@@ -25,7 +26,6 @@ body {
     gap: 10px;
     justify-content: center;
     align-items: center;
-
     background-color: #333;
 }
 
@@ -40,6 +40,7 @@ body {
     margin: 0;
     padding: 0;
 }
+
 .board {
     background-color: aquamarine;
     width: 560px;
@@ -66,8 +67,7 @@ body {
     background-color: #7c8979;
 }
 
-.piece {
-    
+.piece { 
     width: 60px;
     height: 60px;
 }
@@ -85,24 +85,28 @@ body {
     background-size: contain;
     background-position: center;
 }
+
 .white-knight {
     background-image: url(./img/knight-white.png);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
 }
+
 .white-bishop {
     background-image: url(./img/bishop-white.png);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
 }
+
 .white-king {
     background-image: url(./img/king-white.png);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
 }
+
 .white-queen {
     background-image: url(./img/queen-white.png);
     background-repeat: no-repeat;
@@ -123,24 +127,28 @@ body {
     background-size: contain;
     background-position: center;
 }
+
 .black-knight {
     background-image: url(./img/knight-black.png);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
 }
+
 .black-bishop {
     background-image: url(./img/bishop-black.png);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: center;
 }
+
 .black-king {
     background-image: url(./img/king-black.png);
     background-repeat: no-repeat;
     background-size: contain;
     background-position: bottom center;
 }
+
 .black-queen {
     background-image: url(./img/queen-black.png);
     background-repeat: no-repeat;
@@ -151,6 +159,7 @@ body {
 .picked-piece {
      background-color: transparent;
 }
+
 .legal-move {
     width: 70px;
     height: 70px;
@@ -160,6 +169,7 @@ body {
     align-items: center;
     padding: 0;
 }
+
 .legal-move::after {
     content: '';
     position: absolute;
@@ -174,7 +184,6 @@ body {
     height: 70px;
     position: relative;
     display: flex;
-    
     align-items: center;
     padding: 0;
 }
@@ -204,7 +213,6 @@ body {
     height: 70px;
     position: relative;
     display: flex;
-    
     align-items: center;
     padding: 0;
 }
@@ -280,6 +288,7 @@ body {
 
 .player-info-wrapper { 
     display: flex;
+    width: 60%;
 }
 .taken-pieces {
     display: flex;
@@ -302,14 +311,15 @@ body {
     margin: 0;
     padding: 0;
     font-size: 16px;
-    color: #dad6d6;
+    color: #3c3a3a;
     
 }
 .player-name-black {
     margin: 0;
     padding: 0;
     font-size: 16px;
-    color: #3c3a3a;
+    color: #dad6d6;
+
     
 }
 .player-info {
@@ -367,7 +377,6 @@ body {
 .moves-history-list {
     margin: 0;
     padding-left: 25px;
-
 }
 
 .moves-history-item {
@@ -397,16 +406,13 @@ body {
     top: 0; 
     width: 70px; 
     height: auto; 
-    
     background-color: #ede8e8;
-    
-    z-index: 999; /* поверх доски */
+    z-index: 999;
   }
   .black-modal {
     top: auto;
     bottom: 0;
   }
-
 
   .btn {
     border: none;
@@ -467,9 +473,6 @@ body {
     background-position: center;
 }
 
-/* style.css */
-
-/* Стили для Overlay выбора соперника */
 .selection-overlay {
     position: fixed;
     top: 0;
@@ -542,4 +545,22 @@ body {
     background: #0056b3;
 }
 
-/* Стили для индикатора "Движок думает..." */
+.opponent.selected-opponent {
+    border: 2px solid #007BFF;
+    box-shadow: 0 0 10px rgba(0,123,255,0.5);
+    transform: scale(1.05);
+}
+
+.color-pick-wrapper {
+    display: none;
+}
+
+.thinking {
+    display: none;    
+    top: 10px;
+    right: 10px; 
+    font-size: 15px;
+    color: white;
+    padding: 0 6px; 
+    border-radius: 5px;
+}
