@@ -1580,6 +1580,8 @@ function resetGame() {
 
     const selectionOverlay = document.getElementById('selection-overlay');
     selectionOverlay.style.display = 'flex';
+
+    enableDragAndDrop();
 }
 
 function setupGameResultButton() {
@@ -1599,3 +1601,128 @@ document.addEventListener('DOMContentLoaded', () => {
     setupGameResultButton();
 });
 
+function enableDragAndDrop() {
+    const pieces = document.querySelectorAll('.piece');
+    const cells = document.querySelectorAll('.cell');
+  
+    pieces.forEach(piece => {
+      piece.setAttribute('draggable', true);
+  
+      piece.addEventListener('mousedown', () => {
+        piece.style.cursor = 'grabbing';
+      });
+  
+      piece.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', piece.parentNode.id);
+  
+        const dragImage = piece.cloneNode(true);
+        dragImage.style.position = 'absolute';
+        dragImage.style.top = '-9999px';
+        dragImage.style.left = '-9999px';
+        document.body.appendChild(dragImage);
+  
+        e.dataTransfer.setDragImage(dragImage, piece.offsetWidth / 2, piece.offsetHeight / 2);
+  
+        piece.classList.add('dragging');
+        clearLegalMoves();
+        clearLegalAttacks();
+  
+        const cellId = piece.parentNode.id;
+        showLegalMoves(cellId);
+      });
+  
+      piece.addEventListener('dragend', () => {
+        piece.classList.remove('dragging');
+        piece.style.cursor = '';
+        clearLegalMoves();
+        clearLegalAttacks();
+  
+        const dragImages = document.querySelectorAll('.piece.dragging');
+        dragImages.forEach(img => img.remove());
+      });
+  
+      piece.addEventListener('mouseup', () => {
+        piece.style.cursor = '';
+      });
+    });
+  
+    cells.forEach(cell => {
+      cell.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (cell.classList.contains('legal-move') || cell.classList.contains('under-attack')) {
+          cell.classList.add('drag-over');
+        }
+      });
+  
+      cell.addEventListener('dragleave', () => {
+        cell.classList.remove('drag-over');
+      });
+  
+      cell.addEventListener('drop', (e) => {
+        e.preventDefault();
+        cell.classList.remove('drag-over');
+  
+        const fromCellId = e.dataTransfer.getData('text/plain');
+        const toCellId = cell.id;
+  
+        const pickedPiece = document.getElementById(fromCellId).querySelector('.piece');
+  
+        if (cell.classList.contains('legal-move')) {
+          cell.appendChild(pickedPiece);
+          movePieceHandler(fromCellId, toCellId, pickedPiece);
+        } else if (cell.classList.contains('under-attack')) {
+          capturePieceHandler(fromCellId, toCellId, pickedPiece, cell);
+        }
+      });
+    });
+  }
+
+  enableDragAndDrop();
+  function movePieceHandler(fromCellId, toCellId, pickedPiece) {
+    const [fr, fc] = idToRC(fromCellId);
+    const [tr, tc] = idToRC(toCellId);
+    const oppColor = (pickedPiece.getAttribute('color') === 'white') ? 'black' : 'white';
+  
+    movesHistory.push(`${pickedPiece.getAttribute('color')} ${pickedPiece.getAttribute('type')} moves from ${fromCellId} to ${toCellId}`);
+  
+    initBoardArrayFromDOM();
+    const movedPiece = boardArray[tr][tc];
+    setEnPassantIfNeeded(fr, fc, tr, tc, movedPiece);
+    checkPromotion(pickedPiece);
+    ifChecked(oppColor);
+    checkEndgameState(oppColor);
+    changeTurn();
+    turnIndicator();
+    checkAdvantage();
+    updateHistoryList();
+    sendCurrentFENToEngine();
+  }
+  function capturePieceHandler(fromCellId, toCellId, pickedPiece, targetCell) {
+    const targetPiece = targetCell.querySelector('.piece');
+    const color = pickedPiece.getAttribute('color');
+    const oppColor = (color === 'white') ? 'black' : 'white';
+    const type = pickedPiece.getAttribute('type');
+    const targetType = targetPiece.getAttribute('type');
+    const targetColor = targetPiece.getAttribute('color');
+  
+    movesHistory.push(`${color} ${type} takes ${targetColor} ${targetType} from ${fromCellId} to ${toCellId}`);
+    
+    targetPiece.remove();
+    targetCell.appendChild(pickedPiece);
+  
+    if (targetColor === 'white') {
+      const dummyPiece = createPiece(targetType, 'white');
+      blackStock.appendChild(dummyPiece);
+    } else {
+      const dummyPiece = createPiece(targetType, 'black');
+      whiteStock.appendChild(dummyPiece);
+    }
+  
+    checkAdvantage();
+    initBoardArrayFromDOM();
+    changeTurn();
+    turnIndicator();
+    updateHistoryList();
+    sendCurrentFENToEngine();
+  }
+  
