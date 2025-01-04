@@ -10,25 +10,47 @@
     <div id="engine-thinking" class="thinking font">
         думает...
     </div>
+    <div class="game-result-overlay">
+        <div class="game-result flex">
+            <h2 class="result-title font-medium">Победа!</h2>
+            <p class="result-text font-medium">Отличная работа! Ты обыграл</p>
+            <img src="./img/rock.png" alt="Камень" class="opponent-img result-img">
+            <button id="restart-game-button" class="start-game-button">Играть еще раз</button>
+        </div>
+    </div>
     <div id="selection-overlay" class="selection-overlay">
         <div class="selection-modal">
-            <h2>Выберите оппонента</h2>
+            <h2 class="font-medium">Выберите оппонента</h2>
             <div class="opponents-list">
-                <div class="opponent" data-depth="5" data-skill="0">
+                <div class="opponent" data-depth="1" data-skill="1">
                     <img src="./img/rock.png" alt="Камень" class="opponent-img">
-                    <h3>Камень</h3>
+                    <h3 class="font-medium">Камень</h3>
+                    <p class="op-descr font">Нужно очень постараться, чтобы ему проиграть.</p>
                 </div>
-                <div class="opponent" data-depth="10" data-skill="5">
-                    <img src="./img/ezy.png" alt="Легкий" class="opponent-img">
-                    <h3>Легкий</h3>
+                <div class="opponent" data-depth="4" data-skill="4">
+                    <img src="./img/monkey.png" alt="Обезьянка Бо" class="opponent-img">
+                    <h3 class="font-medium">Обезьянка Бо</h3>
+                    <p class="op-descr font">Бо умеет играть, но очень слабо, у тебя хорошие шансы.</p>
                 </div>
-                <div class="opponent" data-depth="15" data-skill="10">
-                    <img src="./img/smart.png" alt="Гроссмейстер" class="opponent-img">
-                    <h3>Гроссмейстер</h3>
+                <div class="opponent" data-depth="7" data-skill="7">
+                    <img src="./img/cat.png" alt="Стивен" class="opponent-img">
+                    <h3 class="font-medium">Кот Стивен</h3>
+                    <p class="op-descr font">Стивен неплохо играет, но много отвелкается.</p>
                 </div>
-                <div class="opponent" data-depth="20" data-skill="15">
-                    <img src="./img/master.png" alt="Сверхразум" class="opponent-img">
-                    <h3>Сверхразум</h3>
+                <div class="opponent" data-depth="10" data-skill="10">
+                    <img src="./img/owl.png" alt="Совенок Филиппо" class="opponent-img">
+                    <h3 class="font-medium">Совенок Филиппо</h3>
+                    <p class="op-descr font">Филиппо очень силён, придется попотеть.</p>
+                </div>
+                <div class="opponent" data-depth="14" data-skill="15">
+                    <img src="./img/magnus.png" alt="Магнус Карлсен" class="opponent-img">
+                    <h3 class="font-medium">Магнус Карлсен</h3>
+                    <p class="op-descr font">Магнус - сильнейший шахматист в мире, шансов практически нет.</p>
+                </div>
+                <div class="opponent" data-depth="15" data-skill="20">
+                    <img src="./img/genius.png" alt="Сверхразум" class="opponent-img">
+                    <h3 class="font-medium">Сверхразум</h3>
+                    <p class="op-descr font">Простой смертный не обыграет, но ты можешь попробовать.</p>
                 </div>
             </div>
             <div class="color-pick-wrapper">
@@ -83,7 +105,7 @@
         </div> 
     </div>
     <div class="game-info" id="game-info">
-        <ol class="moves-history-list" id="moves-history-list"></ol>
+        <ol class="moves-history-list font-medium" id="moves-history-list"></ol>
     </div>
     <div id="promotion-dialog" class="promotion-modal" style="display:none;">
         <button data-type="queen" class="btn"></button>

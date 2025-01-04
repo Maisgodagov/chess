@@ -59,26 +59,38 @@ const opponents = [
     {
         name: 'Камень',
         img: './img/rock.png',
-        depth: 5,
-        skill: 0
+        depth: 1,
+        skill: 1
     },
     {
-        name: 'Легкий',
-        img: './img/easy.png',
+        name: 'Обезьянка Бо',
+        img: './img/monkey.png',
+        depth: 4,
+        skill: 4
+    },
+    {
+        name: 'Кот Стивен',
+        img: './img/cat.png',
+        depth: 7,
+        skill: 7
+    },
+    {
+        name: 'Совенок Филиппо',
+        img: './img/owl.png',
         depth: 10,
-        skill: 5
+        skill: 10
     },
     {
-        name: 'Гроссмейстер',
-        img: './img/gm.png',
-        depth: 15,
-        skill: 10
+        name: 'Магнус Карлсен',
+        img: './img/magnus.png',
+        depth: 14,
+        skill: 15
     },
     {
         name: 'Сверхразум',
         img: './img/genius.png',
-        depth: 20,
-        skill: 15
+        depth: 15,
+        skill: 20
     }
 ];
 
@@ -521,9 +533,14 @@ function showLegalMoves(cellId) {
             cellEl.classList.add('legal-move');
         }
     });
-    legalCastleShort(piece.color);
-    legalCastleLong(piece.color);
+    
+    // Добавляем проверку, является ли выбранная фигура королем
+    if (piece.type === 'king') {
+        legalCastleShort(piece.color);
+        legalCastleLong(piece.color);
+    }
 }
+
 
 function piecePick(e) {
     const piece = e.target;
@@ -986,11 +1003,18 @@ function checkEndgameState(color) {
     if (legalMoves.length === 0) {
         if (inCheck) {
             console.log(`Мат! ${color} проиграл`);
+            if (color === 'black') { // Черные в шахе и мате, значит белые победили
+                showGameResult('win');
+            } else if (color === 'white') { // Белые в шахе и мате, значит черные победили
+                showGameResult('lose');
+            }
         } else {
             console.log(`Пат! Ничья`);
+            showGameResult('draw');
         }
     }
 }
+
 
 function updateCastlingRightsAfterMove(color, type, fromId, toId) {
     let newCastlingRights = castlingRights;
@@ -1284,7 +1308,7 @@ function applyEngineMove(uciMove) {
         }
     }
 
-    movesHistory.push(`engine ${piece.getAttribute('type')} moves from ${fromId} to ${toId}`);
+    movesHistory.push(`Black ${piece.getAttribute('type')} moves from ${fromId} to ${toId}`);
     updateHistoryList();
 
     clearLegalMoves();
@@ -1315,7 +1339,6 @@ function applyEngineMove(uciMove) {
     changeTurn();
     turnIndicator();
     checkAdvantage();
-    updateHistoryList();
 }
 
 let engineWorker = new Worker('engine/engineWorker.js');
@@ -1390,18 +1413,6 @@ function hideEngineThinking() {
     if (thinkingEl) {
         thinkingEl.style.display = 'none';
     }
-}
-
-function setupOpponentSelection() {
-    const opponentsList = document.querySelectorAll('.opponent');
-    opponentsList.forEach((opponentEl) => {
-        opponentEl.addEventListener('click', () => {
-            opponentsList.forEach(el => el.classList.remove('selected-opponent'));
-            opponentEl.classList.add('selected-opponent');
-            const opponentName = opponentEl.querySelector('h3').innerText;
-            selectedOpponent = opponents.find(op => op.name === opponentName);
-        });
-    });
 }
 
 function setupStartGameButton() {
@@ -1480,8 +1491,111 @@ function setEngineDepth(level) {
     engineDepth = Math.max(1, Math.min(level, 20));
     console.log(`Engine depth set to ${engineDepth}`);
 }
+function showGameResult(outcome) {
+    const overlay = document.querySelector('.game-result-overlay');
+    const resultTitle = overlay.querySelector('.result-title');
+    const resultText = overlay.querySelector('.result-text');
+    const resultImg = overlay.querySelector('.result-img');
+
+    if (!selectedOpponent) {
+        console.warn("No selected opponent found!");
+        return;
+    }
+
+    if (outcome === 'win') {
+        resultTitle.innerText = "Победа!";
+        resultText.innerText = `${selectedOpponent.name} повержен. Ты показал отличную игру!`;
+    } else if (outcome === 'lose') {
+        resultTitle.innerText = "Поражение!";
+        resultText.innerText = `${selectedOpponent.name} тебя переиграл. Не расстраивайся, можешь попробовать взять реванш.`;
+    } else if (outcome === 'draw') {
+        resultTitle.innerText = "Ничья";
+        resultText.innerText = "Партия закончилась ничьей.";
+    }
+
+    resultImg.src = selectedOpponent.img;
+    resultImg.alt = selectedOpponent.name;
+
+    overlay.style.display = 'flex';
+}
+
+function resetGame() {
+    const overlay = document.querySelector('.game-result-overlay');
+    overlay.style.display = 'none';
+
+    boardEl.innerHTML = '';
+
+    for (let i = 0; i < boardSize; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('cell');
+
+        if (startingPosition[i]) {
+            const [type, color] = startingPosition[i].split('-');
+            const piece = createPiece(type, color);
+            cell.append(piece);
+        }
+        const row = Math.ceil((boardSize - i) / 8);
+        const col = (i % 8) + 1;
+        const file = cols[(i % 8)];
+
+        cell.setAttribute('cell-row', row);
+        cell.setAttribute('cell-col-id', col);
+        cell.setAttribute('cell-col', file);
+
+        const cellId = `${file}${row}`;
+        cell.setAttribute('id', cellId);
+
+        if ((row + col) % 2 === 1) {
+            cell.classList.add('white');
+        } else {
+            cell.classList.add('black');
+        }
+
+        boardEl.append(cell);
+    }
+
+    whiteScore = 0;
+    blackScore = 0;
+    whiteScoreSpan.innerHTML = whiteScore;
+    blackScoreSpan.innerHTML = blackScore;
+
+    whiteAdvantageSpan.innerHTML = null;
+    blackAdvantageSpan.innerHTML = null;
+
+    turn = 'white';
+    turnIndicator();
+
+    enPassantTarget = null;
+    castlingRights = "KQkq";
+    halfmoveClock = 0;
+    fullmoveNumber = 1;
+
+    whiteStock.innerHTML = '';
+    blackStock.innerHTML = '';
+
+    movesHistory.length = 0;
+    movesHistoryList.innerHTML = '';
+
+    initBoardArrayFromDOM();
+
+    const selectionOverlay = document.getElementById('selection-overlay');
+    selectionOverlay.style.display = 'flex';
+}
+
+function setupGameResultButton() {
+    const restartButton = document.getElementById('restart-game-button');
+    if (!restartButton) {
+        console.warn("No element with id 'restart-game-button' found!");
+        return;
+    }
+    restartButton.addEventListener('click', () => {
+        resetGame();
+    });
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     setupOpponentSelection();
     setupStartGameButton();
+    setupGameResultButton();
 });
+
