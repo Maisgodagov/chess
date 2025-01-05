@@ -497,6 +497,7 @@ body {
     text-align: center;
     width: 80%;
     max-width: 800px;
+    overflow-y: scroll;
 }
 
 .opponents-list {
@@ -504,6 +505,7 @@ body {
     justify-content: space-around;
     flex-wrap: wrap;
     margin-bottom: 20px;
+    overflow-y: scroll;
 }
 
 .opponent {
@@ -634,6 +636,6 @@ body {
     outline: 2px solid #433f3f58;
   }
   .piece.dragging {
-    opacity: 0.5; /* Полупрозрачность для переносимой фигуры */
+    opacity: 0.5;
     cursor: grabbing !important;
   }

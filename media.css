@@ -1,0 +1,153 @@
+@media(max-width: 430px) {
+    body {
+        flex-direction: column;
+    }
+    .cell {
+        width: 50px;
+        height: 50px;
+        background-color: #a35050;
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        padding-bottom: 3px;
+    }
+    .board {
+        background-color: aquamarine;
+        width: 400px;
+        height: 400px;
+        display: flex;
+        flex-wrap: wrap;
+    }
+    .piece { 
+        width: 45px;
+        height: 45px;
+    }
+    .white {
+        background-color: #ede8e8;
+    }
+    
+    .black {
+        background-color: #7c8979;
+    }
+    .legal-move {
+        width: 50px;
+        height: 50px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+    }
+    
+    .legal-move::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50px;
+        background-color: #54535356;
+    }
+    
+    .short-castle {
+        width: 50px;
+        height: 50px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 0;
+    }
+    
+    .short-castle::after {
+        content: '';
+        position: absolute;
+        left: 15px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50px;
+        background-color: #54535356;
+    }
+    
+    .short-castle::before {
+        content: '';
+        position: absolute;
+        right: 15px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50px;
+        background-color: #54535356;
+    }
+    
+    .long-castle {
+        width: 50px;
+        height: 50px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        padding: 0;
+    }
+    
+    .long-castle::after {
+        content: '';
+        position: absolute;
+        left: 15px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50px;
+        background-color: #54535356;
+    }
+    
+    .long-castle::before {
+        content: '';
+        position: absolute;
+        right: 15px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50px;
+        background-color: #54535356;
+    }
+    
+    .under-attack {
+        width: 50px;
+        height: 50px;
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 0;
+    }
+    
+    .under-attack::after {
+        content: '';
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        width: 39px;
+        height: 39px;
+        border-radius: 50px;
+        border: 7px solid #54535356;   
+    }
+    .game-info {
+        width: 100%;
+        height: 300px;
+        border-radius: 8px;
+        background-color: #dad6d6;
+        padding: 10px;
+        overflow-y: scroll;
+    }
+    .opponent {
+        cursor: pointer;
+        padding: 10px;
+        border: 2px solid transparent;
+        border-radius: 10px;
+        transition: border 0.3s;
+        width: 250px;
+    }
+    .opponents-list {
+        display: flex;
+        justify-content: space-around;
+        flex-wrap: wrap;
+        margin-bottom: 20px;
+        height: 600px;
+        overflow-y: scroll;
+    }
+}
